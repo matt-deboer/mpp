@@ -20,10 +20,10 @@ release: clean
 		-o bin/$(TARGET) ./pkg/server
 
 ca-certificates.crt:
-	@-docker rm -f etcdcd_cacerts
-	@docker run --name etcdcd_cacerts debian:latest bash -c 'apt-get update && apt-get install -y ca-certificates'
-	@docker cp etcdcd_cacerts:/etc/ssl/certs/ca-certificates.crt .
-	@docker rm -f etcdcd_cacerts
+	@-docker rm -f mpp_cacerts
+	@docker run --name mpp_cacerts debian:latest bash -c 'apt-get update && apt-get install -y ca-certificates'
+	@docker cp mpp_cacerts:/etc/ssl/certs/ca-certificates.crt .
+	@docker rm -f mpp_cacerts
 
 docker: ca-certificates.crt
 	@echo "Building ${DOCKER_IMAGE}..."
