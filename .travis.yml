@@ -1,0 +1,12 @@
+language: go
+go:
+- 1.8
+addons:
+  apt:
+    packages:
+      - upx-ucl
+script:
+- make release
+- upx bin/dcos-auth-proxy
+- $HOME/gopath/bin/goveralls -service=travis-ci
+

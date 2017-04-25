@@ -1,0 +1,106 @@
+{
+    "memo": "",
+    "projects": [
+        {
+            "name": "github.com/Sirupsen/logrus",
+            "version": "v0.10.0",
+            "revision": "4b6ea7319e214d98c938f12692336f7ca9348d6b",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/donovanhide/eventsource",
+            "branch": "master",
+            "revision": "fd1de70867126402be23c306e1ce32828455d85b",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/google/go-querystring",
+            "branch": "master",
+            "revision": "9235644dd9e52eeae6fa48efd539fdc351a0af53",
+            "packages": [
+                "query"
+            ]
+        },
+        {
+            "name": "github.com/mailgun/multibuf",
+            "branch": "master",
+            "revision": "565402cd71fbd9c12aa7e295324ea357e970a61e",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/matt-deboer/go-marathon",
+            "branch": "master",
+            "revision": "e63c830bf3faa0ddd1897a62effc8c5aca505af4",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/prometheus/client_golang",
+            "revision": "334af0119a8f8fb6af5bb950d535c482cac7f836",
+            "packages": [
+                "api/prometheus"
+            ]
+        },
+        {
+            "name": "github.com/prometheus/common",
+            "revision": "ebdfc6da46522d58825777cf1f90490a5b1ef1d8",
+            "packages": [
+                "model"
+            ]
+        },
+        {
+            "name": "github.com/stretchr/testify",
+            "revision": "1297dc01ed0a819ff634c89707081a4df43baf6b",
+            "packages": [
+                "assert"
+            ]
+        },
+        {
+            "name": "github.com/urfave/cli",
+            "branch": "master",
+            "revision": "0bdeddeeb0f650497d603c4ad7b20cfe685682f6",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/vulcand/oxy",
+            "branch": "master",
+            "revision": "57f282cff8fbb7ed955c6da1b6261f6b9d490784",
+            "packages": [
+                "buffer",
+                "forward"
+            ]
+        },
+        {
+            "name": "github.com/vulcand/predicate",
+            "branch": "master",
+            "revision": "19b9dde14240d94c804ae5736ad0e1de10bf8fe6",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "golang.org/x/net",
+            "revision": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf",
+            "packages": [
+                "context",
+                "context/ctxhttp"
+            ]
+        },
+        {
+            "name": "golang.org/x/sys",
+            "revision": "98fc11432b951eb53c62602ba4ae99d03c1fb7e2",
+            "packages": [
+                "unix"
+            ]
+        }
+    ]
+}
