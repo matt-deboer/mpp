@@ -1,13 +1,17 @@
 package locator
 
 import (
+	"context"
 	"fmt"
-	"strings"
-
 	"io/ioutil"
 	"regexp"
+	"strings"
+	"time"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/prometheus/client_golang/api/prometheus"
+	"github.com/prometheus/common/model"
 )
 
 var (
@@ -23,8 +27,11 @@ type Locator interface {
 
 // PrometheusEndpoint encapsulates a QueryAPI instance and its associated address
 type PrometheusEndpoint struct {
-	QueryAPI prometheus.QueryAPI
-	Address  string
+	QueryAPI             prometheus.QueryAPI
+	Uptime               time.Duration
+	Selected             bool
+	Address              string
+	SelectionMetricValue interface{}
 }
 
 func (pe *PrometheusEndpoint) String() string {
@@ -61,10 +68,22 @@ func ToPrometheusClients(endpointURLs []string) ([]*PrometheusEndpoint, error) {
 				Address: addr,
 			})
 			if err == nil {
-				endpoints = append(endpoints, &PrometheusEndpoint{QueryAPI: prometheus.NewQueryAPI(client), Address: addr})
+				queryAPI := prometheus.NewQueryAPI(client)
+				result, err := queryAPI.Query(context.TODO(), "(time() - max(process_start_time_seconds{job=\"prometheus\"}))", time.Now())
+				if log.GetLevel() >= log.DebugLevel {
+					log.Debugf("Endpoint %v returned uptime result: %v", addr, result)
+				}
+				if err == nil {
+					uptime := time.Duration(float64(result.(model.Vector)[0].Value)) * time.Second
+					endpoints = append(endpoints, &PrometheusEndpoint{QueryAPI: prometheus.NewQueryAPI(client), Address: addr, Uptime: uptime})
+					continue
+				} else {
+					errs = append(errs, err)
+				}
 			} else {
 				errs = append(errs, err)
 			}
+			endpoints = append(endpoints, &PrometheusEndpoint{Address: addr, Uptime: time.Duration(0)})
 		}
 	}
 	if len(errs) > 0 {

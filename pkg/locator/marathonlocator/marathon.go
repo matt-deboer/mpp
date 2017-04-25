@@ -7,7 +7,6 @@ import (
 
 	"github.com/matt-deboer/go-marathon"
 	"github.com/matt-deboer/mpp/pkg/locator"
-	"github.com/prometheus/client_golang/api/prometheus"
 )
 
 type marathonLocator struct {
@@ -75,7 +74,7 @@ func (ml *marathonLocator) authenticate(marathonURL string) (marathon.Marathon, 
 // Endpoints provides a list of candidate prometheus endpoints
 func (ml *marathonLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 
-	apis := []*locator.PrometheusEndpoint{}
+	endpoints := []string{}
 	for _, name := range ml.apps {
 		app, err := ml.client.ApplicationBy(name, nil)
 		if apiError, ok := err.(*marathon.APIError); ok && apiError.ErrCode == marathon.ErrCodeUnauthorized {
@@ -95,15 +94,9 @@ func (ml *marathonLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 			}
 		} else {
 			for _, task := range app.Tasks {
-
-				endpoint := fmt.Sprintf("http://%s:%d", task.Host, task.Ports[0])
-				client, err := prometheus.New(prometheus.Config{Address: endpoint})
-				if err != nil {
-					log.Errorf("Failed to connect to prometheus endpoint %s: %v", endpoint, err)
-				}
-				apis = append(apis, &locator.PrometheusEndpoint{QueryAPI: prometheus.NewQueryAPI(client), Address: endpoint})
+				endpoints = append(endpoints, fmt.Sprintf("http://%s:%d", task.Host, task.Ports[0]))
 			}
 		}
 	}
-	return apis, nil
+	return locator.ToPrometheusClients(endpoints)
 }

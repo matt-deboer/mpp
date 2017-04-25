@@ -12,7 +12,8 @@ import (
 )
 
 func init() {
-	selector.RegisterStrategy("single-most-data", &Selector{})
+	s := &Selector{}
+	selector.RegisterStrategy(s.Name(), s)
 }
 
 // Selector implements selction of a single prometheus endpoint out of a provided set of endpoints
@@ -20,11 +21,27 @@ func init() {
 type Selector struct {
 }
 
+// Name provides the (unique) name of this strategy
+func (s *Selector) Name() string {
+	return "single-most-data"
+}
+
+// Description provides a human-readable description for this strategy
+func (s *Selector) Description() string {
+	return "Selects the single prometheus instance with the most ingested samples"
+}
+
+// ComparisonMetricName gets the name of the comparison metric/calculation used to make a selection
+func (s *Selector) ComparisonMetricName() string {
+	return "local_storage_ingested_samples_total"
+}
+
 // Select chooses elligible prometheus endpoints out of the provided set
-func (s *Selector) Select(endpoints []*locator.PrometheusEndpoint) (targets []string, err error) {
+func (s *Selector) Select(endpoints []*locator.PrometheusEndpoint) (err error) {
 	var mostDataIndex = -1
 	var mostData float64
 	for i, endpoint := range endpoints {
+		endpoint.Selected = false
 		value, err := endpoint.QueryAPI.Query(context.TODO(), "prometheus_local_storage_ingested_samples_total", time.Now())
 		if err != nil {
 			log.Errorf("Endpoint %v returned error: %v", endpoint, err)
@@ -44,7 +61,8 @@ func (s *Selector) Select(endpoints []*locator.PrometheusEndpoint) (targets []st
 		}
 	}
 	if mostDataIndex >= 0 {
-		return []string{endpoints[mostDataIndex].Address}, nil
+		endpoints[mostDataIndex].Selected = true
+		return nil
 	}
-	return nil, fmt.Errorf("No valid/responding endpoints found in the provided list: %v", endpoints)
+	return fmt.Errorf("No valid/responding endpoints found in the provided list: %v", endpoints)
 }
