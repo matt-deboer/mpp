@@ -7,6 +7,5 @@ addons:
       - upx-ucl
 script:
 - make release
-- upx bin/dcos-auth-proxy
-- $HOME/gopath/bin/goveralls -service=travis-ci
+- upx bin/mpp
 
