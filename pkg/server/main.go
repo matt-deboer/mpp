@@ -63,7 +63,7 @@ func main() {
 			Name: "marathon-auth-endpoint",
 			Usage: `The authentication endpoint to use with the 'marathon-principal-secret', overriding the value
 				contained within the secret`,
-			EnvVar: "MPP_MARATHON_PRINCIPAL_SECRET",
+			EnvVar: "MPP_MARATHON_AUTH_ENDPOINT",
 		},
 		cli.StringFlag{
 			Name: "endpoints-file",
@@ -82,7 +82,8 @@ func main() {
 			Name: "selection-interval",
 			Usage: `The interval (in seconds) at which selections are performed; note that selection is
 				automatically performed upon backend failures`,
-			Value: 15,
+			Value:  15,
+			EnvVar: "MPP_SELECTION_INTERVAL",
 		},
 		cli.IntFlag{
 			Name:   "port",
