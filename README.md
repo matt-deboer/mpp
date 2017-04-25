@@ -20,7 +20,7 @@ How it works
 
 MPP acts as a proxy sitting in front of multiple prometheus instances, choosing one or more instances
 to receive requests based on a configurable selector strategy. Candidate instances are found using
-a configured _locator_ mechanism, of which [Marathon], [Kubernetes] and **static** are supported.
+a configured _locator_ mechanism, of which Marathon, Kubernetes and endpoints file are supported.
 
 Discovery
 ---
@@ -35,9 +35,12 @@ endpoints file which is scanned on a regular interval.
 - `--marathon-principal-secret`: (Optional) A DCOS principal-secret object used to authenticate to Marathon.
 - `--marathon-auth-endpoint`: (Optional) Overrides the auth-endpoint contained within the principal secret object.
 
-**Kubernetes** discovery is configured using `--kubeconfig` -- the path to the kubeconfig file.
+**Kubernetes** discovery _(Coming soon)_ is configured using:
 
-**endpoints file** discovery is configured using `--endpoints-file` -- the path to a file containing one
+- `--kubeconfig`: The path to the kubeconfig file used to locate the cluster and authenticate.
+- `--kube-pod-selector`: A pod-selector string used to locate the pods containing the endpoints.  
+
+**Endpoints file** discovery is configured using `--endpoints-file` -- the path to a file containing one
 endpoint per line.
 
 Selection
