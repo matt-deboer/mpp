@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"net/http"
 	"net/url"
 
@@ -32,11 +33,15 @@ func newProxyHandler(s *selector.Selector) *proxyHandler {
 }
 
 func (p *proxyHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	p.rewriter(req.URL)
-	if len(p.selection) == 0 {
-		http.Error(w, "No backends available", 503)
+	if req.URL.Path == "/health" {
+		io.WriteString(w, "OK")
 	} else {
-		p.delegate.ServeHTTP(w, req)
+		p.rewriter(req.URL)
+		if len(p.selection) == 0 {
+			http.Error(w, "No backends available", 503)
+		} else {
+			p.delegate.ServeHTTP(w, req)
+		}
 	}
 }
 
