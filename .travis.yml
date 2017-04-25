@@ -4,8 +4,27 @@ go:
 addons:
   apt:
     packages:
-      - upx-ucl
+    - upx-ucl
 script:
 - make release
-- upx bin/mpp
-
+- upx bin/etcdcd
+after_deploy:
+- make docker VERSION=$TRAVIS_TAG
+- docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+- export REPO=mattdeboer/etcdcd
+- docker push $REPO:$TRAVIS_TAG
+- docker tag $REPO:$TRAVIS_TAG $REPO:latest
+- docker push $REPO:latest
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: zvAhKyLPoVPx28X4mJAol7NGkgRnlp0rzXFjzWFsHYHIo/ZpDDuMOfuD+nO6Le3d+SPSQre5Nw0T9E/bXe3HmPFRv/xznXWooKK1k1RPPuWXx0O21sZReUah4cE0SaQGxodt9PqdHqRCjAChXC5Grdcw3fjpNfXR0gg2yYgM9h/Zd96Od/KU4reTlgG/tRw7k/UZSRvA7wqtUwfiaiKJdYUQuk1xIKgxwlZEmglj+RCgWQEYu/h+EM+ZIpGyLvbS8HuCRT+TpLedlh6R892+8bYDt/NqE6Cx/MbdqAj5FS70Yx4ksJ1ZJWSBEaHKz5yaP53E3eW5aVpIWYutQV4JVR7rkIMALn8pYKp4Tqlw06jGRerLgMz1FHev4ia34bb14ALX/EM31t34YrbfDwOQzXT4hp701DafDJLMXJJt8u7j2d1WrZ23DIRIGsq4gYG+dWQpDXPSK2MByPqGNGtUObUpWvnrp2ZD93ZhZFp6W4NQHGthxgTVPScJ3MLVexxFNHWu55nTA7enjQEMtU6AWNgB+NS9i1lkxrs4szA+EI3XAW4V4RVDx4at0HLKhUAqUSax5tcDAj5XLXjDR81cWYBqnjOMaAcMTezAoSB879YINtC+S78gwTfUNTOX37bWkWBNkxCB0YUzsX0CafxoFbH/o9OTW19UP2fvsK+20Bg=
+  file: bin/mpp
+  on:
+    repo: matt-deboer/mpp
+    tags: true
+env:
+  global:
+  - secure: lmve01JlJeajM1L3oSqp6YPSjgAnB1Au7YnI5ZpyjO9p2H26m3ZISeuAO8y92KzasCgtoRXKn/I9DtQO43GEUvbTQnqEwzcAA6MFmD9bLHbi/v9SPKtAdOlT2/Qj1zZ2Y1eMfQxu2U2gPVOVxy8V9ocQHs9WUwrhRSUj9aDuUpKDwief0JDFU3L8qjS+4mcSRYc8ljEeV/6cf335gp2QxigS7FcMp4+7oriAcYU5y+XB07/RQqj/m+01j8ZoHcr0bFauVlscZoDxM/KQbRopQ5GGg+O/OF1N/uPIy+SIpn6q1Nyw3JRdaaXIh3+e0ACJ4dk4oDuge4SOHY0WTHqTxk6pm85aEQMCxUjU3kOsl6TBrK0tVx4PJrqC0VVilcdzRwBjq26qq1d1H/kSBu/ffrQ1lRNv7sMJqZF9W5a4Lui/t9ESxjb+9o37GyF8TpF+CmmYVi9k1Vz2zO4pMAANcXq+IguWTkPNbC3h5FWGZEslarvW8HnLkKG1SF5m53di+mPLObh1aEyxGZWrpr106uxbWxjmUORebkSVfdf4QLkbL9G/fERszgHjKaBSP3aNafIgui/bryNALj1PZXHPdzDCbI9tcvmQGg+s00AgBWpdUAdwT61RjPvaoKZPFdvxPBXyxJk33kaPQJuF0cJ6O2Kjsr+uQAUj8RQ4V38jGI0=
+  - secure: SrREkhS5vFf8NCiyxYROhMUhnNQrj5FwT4Xv5IWVXp9aQrAncbsX3y0WAQXvetQ+c/aCAMF9WdptPuELjvIlplFezNBosENcnAO1+Fag5hNdCOScrt1X962Io0O+nSr/b0G2SoaTITz1nX+UnmyFw9AadpY3FiYsAP7x2I4tP84XM5Pr1bCyONxpa1NEO2ve2C3e9/xa6xbUszEip09Wsba6z3R1S0P28de8YNaPqOT7QFg48ny7ajH0WH539ZJhT6ikk6wOzYIyNrI9UCwVx2I7zXQKRIg78T/0FsYglD3QzVVCm1Broj6OGZ0asnW+NT9lG3irK8zbpkhEkWnglYEAYXSvfFnaACchQ84grtEKVhkHUf0Vl9nlHzNSyqo+vZO/vAcvhUD2o7rgMsGRKB/CIttrVIymzDTvcDwuN/OiRL2TwuIeKr1sbxl/JfmLI4+aRdj+YsMqEC6MzdnKQhUhV83J2sA935Q5RproaukI+bcaIix3tFgG6h/t2jw5Dl6ygKj3DoRDwnX8x0LxPU/n38MnyYp4A2D2d6wVYjqbRwYaByX3Mj3rfSr3Q7a7JjE9akyZC2yVN+vxAtyhaHeAwHZvEFgqCqzY9Xj30TZ8gRQBGMDRVzM+YamOn88cW1XngfJ2FeDtZKsmnvrS5OReY5BL1KT4MHFnXV57XQ0=
