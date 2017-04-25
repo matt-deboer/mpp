@@ -66,9 +66,10 @@ func main() {
 			EnvVar: "MPP_MARATHON_PRINCIPAL_SECRET",
 		},
 		cli.StringFlag{
-			Name:   "static-endpoints",
-			Usage:  `A comma-separated list of static prometheus endpoints to use`,
-			EnvVar: "MPP_STATIC_ENDPOINTS",
+			Name: "endpoints-file",
+			Usage: `A file path containing a list of endpoints to use, one per line. This file is re-read at every
+				selection interval`,
+			EnvVar: "MPP_ENDPOINTS_FILE",
 		},
 		cli.StringFlag{
 			Name: "selector-strategy",
@@ -147,12 +148,12 @@ func parseLocators(c *cli.Context, app *cli.App) []locator.Locator {
 	var locators []locator.Locator
 
 	insecure := c.Bool("insecure")
-	staticEndpoints := c.String("static-endpoints")
+	endpointsFile := c.String("endpoints-file")
 	kubeconfig := c.String("kubeconfig")
 	marathonURL := c.String("marathon-url")
 
-	if len(staticEndpoints) > 0 {
-		locators = append(locators, locator.NewStaticLocator(strings.Split(staticEndpoints, ",")))
+	if len(endpointsFile) > 0 {
+		locators = append(locators, locator.NewEndpointsFileLocator(endpointsFile))
 	}
 
 	if len(kubeconfig) > 0 {

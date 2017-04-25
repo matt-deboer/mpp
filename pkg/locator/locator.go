@@ -3,7 +3,14 @@ package locator
 import (
 	"fmt"
 
+	"io/ioutil"
+	"regexp"
+
 	"github.com/prometheus/client_golang/api/prometheus"
+)
+
+var (
+	splitter = regexp.MustCompile("\r?\n")
 )
 
 // Locator is a pluggable interface for locating prometheus endpoints
@@ -24,18 +31,22 @@ func (pe *PrometheusEndpoint) String() string {
 }
 
 type staticLocator struct {
-	endpoints []string
+	endpointsFile string
 }
 
-// NewStaticLocator returns a new Locator which always returns the intial
-// set of static endpoints provided
-func NewStaticLocator(endpoints []string) Locator {
-	return &staticLocator{endpoints: endpoints}
+// NewEndpointsFileLocator returns a new Locator which reads
+// a set of endpoints from a file path, one endpoint per line
+func NewEndpointsFileLocator(endpointsFile string) Locator {
+	return &staticLocator{endpointsFile: endpointsFile}
 }
 
 // Endpoints provides a list of candidate prometheus endpoints
 func (sl *staticLocator) Endpoints() ([]*PrometheusEndpoint, error) {
-	return ToPrometheusClients(sl.endpoints)
+	b, err := ioutil.ReadFile(sl.endpointsFile)
+	if err != nil {
+		return nil, err
+	}
+	return ToPrometheusClients(splitter.Split(string(b), -1))
 }
 
 // ToPrometheusClients generates prometheus Client objects from a provided list of URLs

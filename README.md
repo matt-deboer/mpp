@@ -25,9 +25,20 @@ a configured _locator_ mechanism, of which [Marathon], [Kubernetes] and **static
 Discovery
 ---
 
-Prometheus endpoints can be discovered via the Marathon API, the Kubernetes API, or by providing a
-static list of endpoints.
+Prometheus endpoints can be discovered via the Marathon API, the Kubernetes API, or by providing an 
+endpoints file which is scanned on a regular interval.
 
+**Marathon** discovery is configured using:
+
+- `--marathon-url`: The marathon API endpoint to contact.
+- `--marathon-apps`: A comma-separated list of apps to query for endpoints.
+- `--marathon-principal-secret`: (Optional) A DCOS principal-secret object used to authenticate to Marathon.
+- `--marathon-auth-endpoint`: (Optional) Overrides the auth-endpoint contained within the principal secret object.
+
+**Kubernetes** discovery is configured using `--kubeconfig` -- the path to the kubeconfig file.
+
+**endpoints file** discovery is configured using `--endpoints-file` -- the path to a file containing one
+endpoint per line.
 
 Selection
 ---
