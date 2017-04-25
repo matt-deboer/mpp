@@ -32,11 +32,10 @@ Selection
 
 Traffic is routed based on the chosen `--selector-strategy`:
 
-- `singlemostdata`: This strategy always routes traffic to a single prometheus endpoint, determined
+- `single-most-data`: This strategy always routes traffic to a single prometheus endpoint, determined
   by whichever endpoint contains the _most_ data, measured by total metrics count.
 
-- `singeoldestmetric`: This strategy always routes traffic to a single prometheus endpoint, determined
-  by whichever endpoint contains the _oldest_ metric.
+
 
 
 
