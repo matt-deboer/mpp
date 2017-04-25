@@ -22,14 +22,22 @@ type urlRewriter func(url *url.URL)
 func newProxyHandler(s *selector.Selector) *proxyHandler {
 	fwd, _ := forward.New()
 	b, _ := buffer.New(fwd, buffer.Retry(`IsNetworkError() && Attempts() < 2`))
-	proxy := &proxyHandler{selector: s, delegate: b}
+	proxy := &proxyHandler{
+		selector: s,
+		delegate: b,
+		rewriter: func(u *url.URL) {},
+	}
 	proxy.doSelection()
 	return proxy
 }
 
 func (p *proxyHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	p.rewriter(req.URL)
-	p.delegate.ServeHTTP(w, req)
+	if len(p.selection) == 0 {
+		http.Error(w, "No backends available", 503)
+	} else {
+		p.delegate.ServeHTTP(w, req)
+	}
 }
 
 func (p *proxyHandler) doSelection() {
