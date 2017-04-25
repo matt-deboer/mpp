@@ -21,6 +21,10 @@ type Result struct {
 	Candidates []*locator.PrometheusEndpoint
 }
 
+func (r *Result) String() string {
+	return fmt.Sprintf("%v", r.Selection)
+}
+
 // NewSelector returns a new Selector instance of the specified type
 func NewSelector(strategyName string, locators []locator.Locator) (*Selector, error) {
 	if strategy, ok := strategies[strategyName]; ok {
@@ -36,38 +40,44 @@ func (s *Selector) Select() (result *Result, err error) {
 	for _, loc := range s.locators {
 		clients, err := loc.Endpoints()
 		if err != nil {
-			log.Errorf("Locator %v failed to resolve endpoints: %v", loc, err)
+			if clients != nil && len(clients) > 0 {
+				endpoints = append(endpoints, clients...)
+				log.Errorf("Locator %v resolved the following endpoints: %v, with errors: %v", loc, clients, err)
+			} else {
+				log.Errorf("Locator %v failed to resolve endpoints: %v", loc, err)
+			}
 		} else {
+			endpoints = append(endpoints, clients...)
 			if log.GetLevel() >= log.DebugLevel {
 				log.Debugf("Locator %v resolved the following endpoints: %v", loc, clients)
 			}
-			endpoints = append(endpoints, clients...)
 		}
 	}
 	if len(endpoints) == 0 {
 		return nil, fmt.Errorf("No endpoints returned by any locators")
 	}
 
-	err = s.Strategy.Select(endpoints)
-	if err != nil {
-		return nil, err
+	result = &Result{
+		Candidates: endpoints,
 	}
 
-	targets := make([]*url.URL, 0, len(endpoints))
+	err = s.Strategy.Select(endpoints)
+	if err != nil {
+		return result, err
+	}
+
+	result.Selection = make([]*url.URL, 0, len(endpoints))
 	for _, endpoint := range endpoints {
 		if endpoint.Selected {
 			target, err := url.ParseRequestURI(endpoint.Address)
 			if err != nil {
 				log.Errorf("Failed to parse selection '%s': %v", endpoint, err)
 			} else {
-				targets = append(targets, target)
+				result.Selection = append(result.Selection, target)
 			}
 		}
 	}
-	return &Result{
-		Selection:  targets,
-		Candidates: endpoints,
-	}, nil
+	return result, nil
 }
 
 // Strategy is a puggable interface for strategies to select viable prometheus endpoints

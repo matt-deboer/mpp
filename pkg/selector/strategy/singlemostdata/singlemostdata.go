@@ -42,21 +42,23 @@ func (s *Selector) Select(endpoints []*locator.PrometheusEndpoint) (err error) {
 	var mostData float64
 	for i, endpoint := range endpoints {
 		endpoint.Selected = false
-		value, err := endpoint.QueryAPI.Query(context.TODO(), "prometheus_local_storage_ingested_samples_total", time.Now())
-		if err != nil {
-			log.Errorf("Endpoint %v returned error: %v", endpoint, err)
-		} else {
-			if log.GetLevel() >= log.DebugLevel {
-				log.Debugf("Endpoint %v returned value: %v", endpoint, value)
-			}
-			if value.Type() == model.ValVector {
-				sampleValue := float64(value.(model.Vector)[0].Value)
-				if sampleValue > mostData {
-					mostData = sampleValue
-					mostDataIndex = i
-				}
+		if endpoint.QueryAPI != nil {
+			value, err := endpoint.QueryAPI.Query(context.TODO(), "prometheus_local_storage_ingested_samples_total", time.Now())
+			if err != nil {
+				log.Errorf("Endpoint %v returned error: %v", endpoint, err)
 			} else {
-				log.Errorf("Endpoint %v returned unexpected type: %v", endpoint, value.Type())
+				if log.GetLevel() >= log.DebugLevel {
+					log.Debugf("Endpoint %v returned value: %v", endpoint, value)
+				}
+				if value.Type() == model.ValVector {
+					sampleValue := float64(value.(model.Vector)[0].Value)
+					if sampleValue > mostData {
+						mostData = sampleValue
+						mostDataIndex = i
+					}
+				} else {
+					log.Errorf("Endpoint %v returned unexpected type: %v", endpoint, value.Type())
+				}
 			}
 		}
 	}

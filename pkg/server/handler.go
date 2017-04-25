@@ -30,11 +30,10 @@ func newProxyHandler(s *selector.Selector) *proxyHandler {
 	fwd, _ := forward.New()
 	b, _ := buffer.New(fwd, buffer.Retry(`IsNetworkError() && Attempts() < 2`))
 	proxy := &proxyHandler{
-		selector:  s,
-		delegate:  b,
-		rewriter:  func(u *url.URL) {},
-		endpoints: &selector.Result{},
-		started:   time.Now(),
+		selector: s,
+		delegate: b,
+		rewriter: func(u *url.URL) {},
+		started:  time.Now(),
 	}
 	proxy.doSelection()
 
@@ -70,23 +69,34 @@ func (p *proxyHandler) doSelection() {
 
 	result, err := p.selector.Select()
 	if err != nil {
-		log.Errorf("Current selection will not be updated; selector returned error: %v", err)
+		if result != nil {
+			log.Errorf("Current selection is updated, with error: %v", err)
+			if len(result.Selection) == 1 {
+				p.rewriter = func(u *url.URL) {
+					u.Scheme = result.Selection[0].Scheme
+					u.Host = result.Selection[0].Host
+				}
+			}
+			p.endpoints = result
+		} else {
+			log.Errorf("Current selection will not be updated; selector returned no restult, and error: %v", err)
+		}
 	} else {
 		if len(result.Selection) == 0 {
-			log.Errorf("Current selection will not be updated; selector returned error: %v", err)
+			log.Warnf("Selector returned no valid selection")
 		} else if len(result.Selection) == 1 {
 			if log.GetLevel() >= log.DebugLevel {
 				log.Debugf("Selected targets: %v", result.Selection)
 			}
-			if !equal(p.endpoints.Selection, result.Selection) {
-				log.Infof("New targets differ from current selection %v; updating rewriter => %v", p.endpoints.Selection, result.Selection)
+			if p.endpoints == nil || !equal(p.endpoints.Selection, result.Selection) {
+				log.Infof("New targets differ from current selection %v; updating rewriter => %v", p.endpoints, result)
 				p.rewriter = func(u *url.URL) {
 					u.Scheme = result.Selection[0].Scheme
 					u.Host = result.Selection[0].Host
 				}
 				p.endpoints = result
 			} else if log.GetLevel() >= log.DebugLevel {
-				log.Debugf("Selection is unchanged: %v", p.endpoints.Selection)
+				log.Debugf("Selection is unchanged: %v", p.endpoints)
 			}
 		}
 		// TODO: additional handling multiple targets with sticky sessions

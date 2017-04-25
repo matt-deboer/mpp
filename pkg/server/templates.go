@@ -148,7 +148,7 @@ var clusterStatusTemplate = `
 				<tr>
 					<td><a href="{{.Address}}/status">{{.Address}}</a></td>
 					<td>{{if .Selected}}<span class="glyphicon glyphicon-check" aria-hidden="true"></span>{{end}}</td>
-					<td>{{if .Uptime}}{{.Uptime}}{{else}}<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>{{end}}</td>
+					<td>{{if .Uptime}}{{.Uptime}}{{else}}<span class="glyphicon glyphicon-remove" aria-hidden="true"></span><em>&nbsp; unavailable</em>{{end}}</td>
 				</tr>
 				{{end}}{{end}}
 			</tbody>
