@@ -2,6 +2,7 @@ package locator
 
 import (
 	"fmt"
+	"strings"
 
 	"io/ioutil"
 	"regexp"
@@ -46,7 +47,7 @@ func (sl *staticLocator) Endpoints() ([]*PrometheusEndpoint, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ToPrometheusClients(splitter.Split(string(b), -1))
+	return ToPrometheusClients(splitter.Split(strings.Trim(string(b), "\n"), -1))
 }
 
 // ToPrometheusClients generates prometheus Client objects from a provided list of URLs
@@ -54,13 +55,16 @@ func ToPrometheusClients(endpointURLs []string) ([]*PrometheusEndpoint, error) {
 	endpoints := make([]*PrometheusEndpoint, 0, len(endpointURLs))
 	errs := []error{}
 	for _, endpoint := range endpointURLs {
-		client, err := prometheus.New(prometheus.Config{
-			Address: endpoint,
-		})
-		if err == nil {
-			endpoints = append(endpoints, &PrometheusEndpoint{QueryAPI: prometheus.NewQueryAPI(client), Address: endpoint})
-		} else {
-			errs = append(errs, err)
+		addr := strings.Trim(endpoint, " ")
+		if len(addr) > 0 {
+			client, err := prometheus.New(prometheus.Config{
+				Address: addr,
+			})
+			if err == nil {
+				endpoints = append(endpoints, &PrometheusEndpoint{QueryAPI: prometheus.NewQueryAPI(client), Address: addr})
+			} else {
+				errs = append(errs, err)
+			}
 		}
 	}
 	if len(errs) > 0 {
