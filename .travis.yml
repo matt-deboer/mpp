@@ -7,11 +7,11 @@ addons:
     - upx-ucl
 script:
 - make release
-- upx bin/etcdcd
+- upx bin/mpp
 after_deploy:
 - make docker VERSION=$TRAVIS_TAG
 - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-- export REPO=mattdeboer/etcdcd
+- export REPO=mattdeboer/mpp
 - docker push $REPO:$TRAVIS_TAG
 - docker tag $REPO:$TRAVIS_TAG $REPO:latest
 - docker push $REPO:latest
