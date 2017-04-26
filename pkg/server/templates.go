@@ -3,16 +3,14 @@ package main
 import (
 	"time"
 
-	"github.com/matt-deboer/mpp/pkg/selector"
+	"github.com/matt-deboer/mpp/pkg/router"
 )
 
 type templateData struct {
-	Uptime              time.Duration
-	SelectionResult     *selector.Result
-	SelectorStrategy    string
-	SelectorDescription string
-	Version             string
-	GoVersion           string
+	Uptime       time.Duration
+	RouterStatus *router.Status
+	Version      string
+	GoVersion    string
 }
 
 var clusterStatusTemplate = `
@@ -117,7 +115,15 @@ var clusterStatusTemplate = `
         </tr>
         <tr>
           <th>Selector Strategy</th>
-          <td><code>{{.SelectorStrategy}}</code></td>
+          <td><code>{{.RouterStatus.Strategy}}</code></td>
+        </tr>
+				<tr>
+          <th>Comparison Metric</th>
+          <td><code>{{.RouterStatus.ComparisonMetric}}</code></td>
+        </tr>
+				<tr>
+          <th>Selection Interval</th>
+          <td>{{.RouterStatus.Interval}}</td>
         </tr>
       </tbody>
     </table>
@@ -143,12 +149,14 @@ var clusterStatusTemplate = `
 					<th>Endpoint</th>
 					<th>Selected</th>
 					<th>Uptime</th>
+					<th><code>{{.RouterStatus.ComparisonMetric}}</code></th>
 				</tr>
-				{{block "list" .SelectionResult.Candidates}}{{range .}}
+				{{block "list" .RouterStatus.Endpoints}}{{range .}}
 				<tr>
 					<td><a href="{{.Address}}/status">{{.Address}}</a></td>
 					<td>{{if .Selected}}<span class="glyphicon glyphicon-check" aria-hidden="true"></span>{{end}}</td>
 					<td>{{if .Uptime}}{{.Uptime}}{{else}}<span class="glyphicon glyphicon-remove" aria-hidden="true"></span><em>&nbsp; unavailable</em>{{end}}</td>
+					<td>{{.ComparisonMetricValue}}</td>
 				</tr>
 				{{end}}{{end}}
 			</tbody>

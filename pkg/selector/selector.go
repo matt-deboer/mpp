@@ -42,7 +42,7 @@ func (s *Selector) Select() (result *Result, err error) {
 		if err != nil {
 			if clients != nil && len(clients) > 0 {
 				endpoints = append(endpoints, clients...)
-				log.Errorf("Locator %v resolved the following endpoints: %v, with errors: %v", loc, clients, err)
+				log.Warnf("Locator %v resolved the following endpoints: %v, with errors: %v", loc, clients, err)
 			} else {
 				log.Errorf("Locator %v failed to resolve endpoints: %v", loc, err)
 			}
@@ -82,7 +82,9 @@ func (s *Selector) Select() (result *Result, err error) {
 
 // Strategy is a puggable interface for strategies to select viable prometheus endpoints
 type Strategy interface {
-	// Select chooses elligible prometheus endpoints out of the provided set, marking the 'Selected' flag on the chosen items
+	// Select chooses elligible prometheus endpoints out of the provided set, marking
+	// the 'Selected' flag on the chosen items, and optionally, setting the 'Error' flag
+	// on items that cannot be evaluated
 	Select(endpoints []*locator.PrometheusEndpoint) (err error)
 	// Name provides the (unique) name of this strategy
 	Name() string
@@ -90,6 +92,10 @@ type Strategy interface {
 	Description() string
 	// ComparisonMetricName gets the name of the comparison metric/calculation used to make a selection
 	ComparisonMetricName() string
+	// RequiresStickySessions answers whether this strategy needs sticky sessions
+	RequiresStickySessions() bool
+	// NextIndex returns the index of the target that should be used to field the next request
+	NextIndex(targets []*url.URL) int
 }
 
 // All registered platforms

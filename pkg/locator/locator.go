@@ -27,11 +27,12 @@ type Locator interface {
 
 // PrometheusEndpoint encapsulates a QueryAPI instance and its associated address
 type PrometheusEndpoint struct {
-	QueryAPI             prometheus.QueryAPI
-	Uptime               time.Duration
-	Selected             bool
-	Address              string
-	SelectionMetricValue interface{}
+	QueryAPI              prometheus.QueryAPI
+	Error                 error
+	Uptime                time.Duration
+	Selected              bool
+	Address               string
+	ComparisonMetricValue interface{}
 }
 
 func (pe *PrometheusEndpoint) String() string {
@@ -60,7 +61,6 @@ func (sl *staticLocator) Endpoints() ([]*PrometheusEndpoint, error) {
 // ToPrometheusClients generates prometheus Client objects from a provided list of URLs
 func ToPrometheusClients(endpointURLs []string) ([]*PrometheusEndpoint, error) {
 	endpoints := make([]*PrometheusEndpoint, 0, len(endpointURLs))
-	errs := []error{}
 	for _, endpoint := range endpointURLs {
 		addr := strings.Trim(endpoint, " ")
 		if len(addr) > 0 {
@@ -74,20 +74,21 @@ func ToPrometheusClients(endpointURLs []string) ([]*PrometheusEndpoint, error) {
 					log.Debugf("Endpoint %v returned uptime result: %v", addr, result)
 				}
 				if err == nil {
-					uptime := time.Duration(float64(result.(model.Vector)[0].Value)) * time.Second
-					endpoints = append(endpoints, &PrometheusEndpoint{QueryAPI: prometheus.NewQueryAPI(client), Address: addr, Uptime: uptime})
-					continue
-				} else {
-					errs = append(errs, err)
+					if vector, ok := result.(model.Vector); ok && len(vector) > 0 {
+						uptime := time.Duration(float64(result.(model.Vector)[0].Value)) * time.Second
+						endpoints = append(endpoints, &PrometheusEndpoint{QueryAPI: prometheus.NewQueryAPI(client), Address: addr, Uptime: uptime})
+						continue
+					} else {
+						log.Errorf("Endpoint %v returned unexpected uptime result: %v", addr, result)
+						err = fmt.Errorf("Unexpected uptime result: '%v'", result)
+					}
 				}
-			} else {
-				errs = append(errs, err)
 			}
-			endpoints = append(endpoints, &PrometheusEndpoint{Address: addr, Uptime: time.Duration(0)})
+			endpoints = append(endpoints, &PrometheusEndpoint{Address: addr, Uptime: time.Duration(0), Error: err})
 		}
 	}
-	if len(errs) > 0 {
-		return endpoints, fmt.Errorf("One or more errors occurred while creating clients: %#v", errs)
+	if len(endpoints) == 0 {
+		return nil, fmt.Errorf("Unable to locate any potential endpoints")
 	}
 	return endpoints, nil
 }

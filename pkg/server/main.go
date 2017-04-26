@@ -11,7 +11,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/mpp/pkg/locator"
 	"github.com/matt-deboer/mpp/pkg/locator/marathonlocator"
-	"github.com/matt-deboer/mpp/pkg/selector"
+	"github.com/matt-deboer/mpp/pkg/router"
+	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/randomsticky"
 	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/singlemostdata"
 	"github.com/urfave/cli"
 )
@@ -72,17 +73,17 @@ func main() {
 			EnvVar: "MPP_ENDPOINTS_FILE",
 		},
 		cli.StringFlag{
-			Name: "selector-strategy",
-			Usage: `The selector type to use for choosing viable prometheus enpoint(s) from those located;
-				valid choices include: 'single-most-data'`,
+			Name: "routing-strategy",
+			Usage: `The strategy to use for choosing viable prometheus enpoint(s) from those located;
+				valid choices include: 'single-most-data', 'random-sticky'`,
 			Value:  "single-most-data",
-			EnvVar: "MPP_SELECTOR_STRATEGY",
+			EnvVar: "MPP_ROUTING_STRATEGY",
 		},
-		cli.IntFlag{
+		cli.StringFlag{
 			Name: "selection-interval",
-			Usage: `The interval (in seconds) at which selections are performed; note that selection is
+			Usage: `The interval at which selections are performed; note that selection is
 				automatically performed upon backend failures`,
-			Value:  15,
+			Value:  "10s",
 			EnvVar: "MPP_SELECTION_INTERVAL",
 		},
 		cli.IntFlag{
@@ -104,31 +105,19 @@ func main() {
 		}
 
 		port := c.Int("port")
-		strategy := c.String("selector-strategy")
-		interval := time.Duration(c.Int("selection-interval")) * time.Second
+		strategy := c.String("routing-strategy")
+		interval := parseDuration(c, "selection-interval")
 		locators := parseLocators(c, app)
 
-		s, err := selector.NewSelector(strategy, locators)
+		router, err := router.NewRouter(strategy, interval, locators)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		handler := newProxyHandler(s)
 		server := &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
-			Handler: handler,
+			Handler: newMPPHandler(router),
 		}
-
-		go func() {
-			for {
-				if log.GetLevel() >= log.DebugLevel {
-					log.Debugf("Handler selection is sleeping for %s", interval)
-				}
-				time.Sleep(interval)
-				handler.doSelection()
-			}
-		}()
-
 		log.Infof("mpp is listening on port %d", port)
 		server.ListenAndServe()
 	}
@@ -140,7 +129,7 @@ func parseDuration(c *cli.Context, flag string) time.Duration {
 	stringValue := c.String(flag)
 	duration, err := time.ParseDuration(stringValue)
 	if err != nil {
-		log.Fatalf("Invalid duration for '%s': '%s': %v", flag, stringValue, err)
+		argError(c, "Invalid duration for '%s': '%s': %v", flag, stringValue, err)
 	}
 	return duration
 }
