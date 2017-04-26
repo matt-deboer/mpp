@@ -60,7 +60,16 @@ Traffic is routed based on the chosen `--routing-strategy`:
   requests having the same (cookie-managed) session being routed to the same endpoint.
 
 
+Health
+---
 
+The proxy responds with `OK` to requests on the `/health` path.
 
+Status
+---
+
+The proxy displays a status summary (see below) on the `/cluster-status` path.
+
+  ![Cluster Status](./cluster-status.png "Cluster Status")
 
 
