@@ -12,6 +12,7 @@ import (
 	"github.com/matt-deboer/mpp/pkg/locator"
 	"github.com/matt-deboer/mpp/pkg/locator/marathonlocator"
 	"github.com/matt-deboer/mpp/pkg/router"
+	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/minimumhistorysticky"
 	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/randomsticky"
 	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/singlemostdata"
 	"github.com/urfave/cli"
@@ -109,7 +110,7 @@ func main() {
 		interval := parseDuration(c, "selection-interval")
 		locators := parseLocators(c, app)
 
-		router, err := router.NewRouter(strategy, interval, locators)
+		router, err := router.NewRouter(interval, locators, strings.Split(strategy, ":")...)
 		if err != nil {
 			log.Fatal(err)
 		}

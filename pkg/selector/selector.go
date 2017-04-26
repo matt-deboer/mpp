@@ -26,11 +26,18 @@ func (r *Result) String() string {
 }
 
 // NewSelector returns a new Selector instance of the specified type
-func NewSelector(strategyName string, locators []locator.Locator) (*Selector, error) {
-	if strategy, ok := strategies[strategyName]; ok {
+func NewSelector(locators []locator.Locator, strategyArgs ...string) (*Selector, error) {
+	if len(strategyArgs) == 0 {
+		return nil, fmt.Errorf("At minimum, a strategy name (first arg) must be provided")
+	}
+	if stratgyFactory, ok := strategies[strategyArgs[0]]; ok {
+		strategy, err := stratgyFactory(strategyArgs[1:]...)
+		if err != nil {
+			return nil, err
+		}
 		return &Selector{locators: locators, Strategy: strategy}, nil
 	}
-	return nil, fmt.Errorf("No selector strategy named '%s' found", strategyName)
+	return nil, fmt.Errorf("No selector strategy named '%s' found", strategyArgs[0])
 }
 
 // Select performs selection of a/all viable prometheus endpoint target(s)
@@ -101,15 +108,15 @@ type Strategy interface {
 // All registered platforms
 var (
 	strategyMutex sync.Mutex
-	strategies    = make(map[string]Strategy)
+	strategies    = make(map[string]func(args ...string) (Strategy, error))
 )
 
 // RegisterStrategy registers a selector strategy
-func RegisterStrategy(name string, strategy Strategy) {
+func RegisterStrategy(name string, factory func(args ...string) (Strategy, error)) {
 	strategyMutex.Lock()
 	defer strategyMutex.Unlock()
-	strategies[name] = strategy
+	strategies[name] = factory
 	if log.GetLevel() >= log.DebugLevel {
-		log.Debugf("Registered strategy '%s': %v", name, strategy)
+		log.Debugf("Registered strategy '%s'", name)
 	}
 }

@@ -49,8 +49,8 @@ var retryKey contextKey
 type urlRewriter func(u *url.URL)
 
 // NewRouter constructs a new router based on the provided stategy and locators
-func NewRouter(strategy string, interval time.Duration, locators []locator.Locator) (*Router, error) {
-	sel, err := selector.NewSelector(strategy, locators)
+func NewRouter(interval time.Duration, locators []locator.Locator, strategyArgs ...string) (*Router, error) {
+	sel, err := selector.NewSelector(locators, strategyArgs...)
 	if err != nil {
 		return nil, err
 	}

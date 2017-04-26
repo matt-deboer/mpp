@@ -1,8 +1,9 @@
-package singlemostdata
+package minimumhistorysticky
 
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"net/url"
 	"time"
 
@@ -12,78 +13,82 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-const (
-	comparisonMetricName = "prometheus_local_storage_ingested_samples_total"
-)
-
 func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
 	s := &Selector{}
 	selector.RegisterStrategy(s.Name(), func(args ...string) (selector.Strategy, error) {
-		return s, nil
+		if len(args) == 0 {
+			return nil, fmt.Errorf("Strategy %s requires a {minimum-duration} argument", s.Name())
+		}
+		duration, err := time.ParseDuration(args[0])
+		if err != nil {
+			return nil, fmt.Errorf("Invalid minimum duration value '%s' for %s: %v", args[0], s.Name(), err)
+		}
+		return &Selector{minimumHistory: duration}, nil
 	})
 }
 
 // Selector implements selction of a single prometheus endpoint out of a provided set of endpoints
 // which has the highest value of total ingested samples
 type Selector struct {
+	minimumHistory time.Duration
 }
 
 // Name provides the (unique) name of this strategy
 func (s *Selector) Name() string {
-	return "single-most-data"
+	return "minimum-history-sticky"
 }
 
 // Description provides a human-readable description for this strategy
 func (s *Selector) Description() string {
-	return "Selects the single prometheus instance with the most ingested samples"
+	return "Selects a prometheus instance at random, with sticky sessions"
 }
 
 // ComparisonMetricName gets the name of the comparison metric/calculation used to make a selection
 func (s *Selector) ComparisonMetricName() string {
-	return comparisonMetricName
+	return "prometheus_build_info"
 }
 
 // RequiresStickySessions answers whether this strategy needs sticky sessions
 func (s *Selector) RequiresStickySessions() bool {
-	return false
+	return true
 }
 
 // NextIndex returns the index of the target that should be used to field the next request
 func (s *Selector) NextIndex(targets []*url.URL) int {
-	return 0
+	next := rand.Intn(len(targets))
+	if log.GetLevel() >= log.DebugLevel {
+		log.Debugf("Strategy %T returned next index: %d", s, next)
+	}
+	return next
 }
 
 // Select chooses elligible prometheus endpoints out of the provided set
 func (s *Selector) Select(endpoints []*locator.PrometheusEndpoint) (err error) {
-	var mostDataIndex = -1
-	var mostData int64
-	for i, endpoint := range endpoints {
+	selected := 0
+	for _, endpoint := range endpoints {
 		endpoint.Selected = false
 		if endpoint.QueryAPI != nil {
-			value, err := endpoint.QueryAPI.Query(context.TODO(), comparisonMetricName, time.Now())
+			value, err := endpoint.QueryAPI.Query(context.TODO(), "prometheus_build_info", time.Now().Add(-1*s.minimumHistory))
 			if err != nil {
 				log.Errorf("Endpoint %v returned error: %v", endpoint, err)
-				endpoint.Error = err
 			} else {
 				if log.GetLevel() >= log.DebugLevel {
 					log.Debugf("Endpoint %v returned value: %v", endpoint, value)
 				}
 				if value.Type() == model.ValVector {
-					sampleValue := int64(value.(model.Vector)[0].Value)
-					endpoint.ComparisonMetricValue = sampleValue
-					if sampleValue > mostData {
-						mostData = sampleValue
-						mostDataIndex = i
+					if len(value.String()) > 0 {
+						endpoint.ComparisonMetricValue = value.String()
+						endpoint.Selected = true
+						selected++
 					}
 				} else {
-					endpoint.Error = fmt.Errorf("Endpoint %v returned unexpected type: %v", endpoint, value.Type())
-					log.Error(endpoint.Error)
+					log.Errorf("Endpoint %v returned unexpected type: %v", endpoint, value.Type())
 				}
 			}
 		}
 	}
-	if mostDataIndex >= 0 {
-		endpoints[mostDataIndex].Selected = true
+	if selected > 0 {
 		return nil
 	}
 	return fmt.Errorf("No valid/responding endpoints found in the provided list: %v", endpoints)

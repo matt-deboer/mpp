@@ -16,7 +16,9 @@ import (
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 	s := &Selector{}
-	selector.RegisterStrategy(s.Name(), s)
+	selector.RegisterStrategy(s.Name(), func(args ...string) (selector.Strategy, error) {
+		return s, nil
+	})
 }
 
 // Selector implements selction of a single prometheus endpoint out of a provided set of endpoints
@@ -67,9 +69,11 @@ func (s *Selector) Select(endpoints []*locator.PrometheusEndpoint) (err error) {
 					log.Debugf("Endpoint %v returned value: %v", endpoint, value)
 				}
 				if value.Type() == model.ValVector {
-					endpoint.ComparisonMetricValue = value.String()
-					endpoint.Selected = true
-					selected++
+					if len(value.String()) > 0 {
+						endpoint.ComparisonMetricValue = value.String()
+						endpoint.Selected = true
+						selected++
+					}
 				} else {
 					log.Errorf("Endpoint %v returned unexpected type: %v", endpoint, value.Type())
 				}
