@@ -26,7 +26,7 @@ a configured _locator_ mechanism, of which Marathon, Kubernetes and endpoints fi
 Discovery
 ---
 
-Prometheus endpoints can be discovered via the Marathon API, the Kubernetes API, or by providing an 
+Prometheus endpoints can be discovered via the Marathon API, the Kubernetes API, or by providing an
 endpoints file which is scanned on a regular interval.
 
 **Marathon** discovery is configured using:
@@ -39,7 +39,7 @@ endpoints file which is scanned on a regular interval.
 **Kubernetes** discovery _(Coming soon)_ is configured using:
 
 - `--kubeconfig`: The path to the kubeconfig file used to locate the cluster and authenticate.
-- `--kube-pod-selector`: A pod-selector string used to locate the pods containing the endpoints.  
+- `--kube-pod-selector`: A pod-selector string used to locate the pods containing the endpoints. 
 
 **Endpoints file** discovery is configured using `--endpoints-file` -- the path to a file containing one
 endpoint per line.
@@ -53,7 +53,7 @@ Traffic is routed based on the chosen `--routing-strategy`:
   by whichever endpoint contains the _most_ data, measured by total metrics count.
 
 - `minimum-history-sticky:{min-history-duration}`: This strategy routes traffic to a randomly selected prometheus endpoint having
-  at lease M of sample history, with further requests having the same (cookie-managed) session being routed
+  at least M of sample history, with further requests having the same (cookie-managed) session being routed
   to the same endpoint.
 
 - `random-sticky`: This strategy routes traffic to a randomly selected prometheus endpoint, with further
