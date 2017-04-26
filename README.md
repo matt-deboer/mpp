@@ -52,7 +52,7 @@ Traffic is routed based on the chosen `--routing-strategy`:
 - `single-most-data`: This strategy always routes traffic to a single prometheus endpoint, determined
   by whichever endpoint contains the _most_ data, measured by total metrics count.
 
-- `minimum-history-sticky`: This strategy routes traffic to a randomly selected prometheus endpoint having
+- `minimum-history-sticky:{min-history-duration}`: This strategy routes traffic to a randomly selected prometheus endpoint having
   at lease M of sample history, with further requests having the same (cookie-managed) session being routed
   to the same endpoint.
 
