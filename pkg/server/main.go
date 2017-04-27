@@ -12,17 +12,22 @@ import (
 	"github.com/matt-deboer/mpp/pkg/locator"
 	"github.com/matt-deboer/mpp/pkg/locator/marathonlocator"
 	"github.com/matt-deboer/mpp/pkg/router"
-	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/minimumhistorysticky"
-	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/randomsticky"
+	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/minimumhistory"
+	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/random"
 	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/singlemostdata"
 	"github.com/urfave/cli"
 )
 
-// Name is set at compile time based on the git repository
-var Name string
-
-// Version is set at compile time with the git version
-var Version string
+var (
+	// Name is set at compile time based on the git repository
+	Name string
+	// Version is set at compile time with the git version
+	Version string
+	// Branch is set at compile time with the git version
+	Branch string
+	// Revision is set at compile time with the git version
+	Revision string
+)
 
 func main() {
 
@@ -76,7 +81,7 @@ func main() {
 		cli.StringFlag{
 			Name: "routing-strategy",
 			Usage: `The strategy to use for choosing viable prometheus enpoint(s) from those located;
-				valid choices include: 'single-most-data', 'random-sticky'`,
+				valid choices include: 'single-most-data', 'random', 'minimum-history'`,
 			Value:  "single-most-data",
 			EnvVar: "MPP_ROUTING_STRATEGY",
 		},
@@ -86,6 +91,13 @@ func main() {
 				automatically performed upon backend failures`,
 			Value:  "10s",
 			EnvVar: "MPP_SELECTION_INTERVAL",
+		},
+		cli.StringFlag{
+			Name: "affinity-options",
+			Usage: `A comma-separated list of sticky-session modes to enable, of which 'cookie', and 'ip' 
+				are valid options`,
+			Value:  "cookies",
+			EnvVar: "MPP_AFFINITY_OPTIONS",
 		},
 		cli.IntFlag{
 			Name:   "port",
@@ -108,9 +120,11 @@ func main() {
 		port := c.Int("port")
 		strategy := c.String("routing-strategy")
 		interval := parseDuration(c, "selection-interval")
-		locators := parseLocators(c, app)
+		locators := parseLocators(c)
+		affinityOptions := parseAffinityOptions(c)
 
-		router, err := router.NewRouter(interval, locators, strings.Split(strategy, ":")...)
+		router, err := router.NewRouter(interval, affinityOptions,
+			locators, strings.Split(strategy, ":")...)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -135,7 +149,20 @@ func parseDuration(c *cli.Context, flag string) time.Duration {
 	return duration
 }
 
-func parseLocators(c *cli.Context, app *cli.App) []locator.Locator {
+func parseAffinityOptions(c *cli.Context) []router.AffinityOption {
+	opts := make([]router.AffinityOption, 0, 2)
+	for _, o := range strings.Split(strings.Trim(c.String("affinity-options"), " \n"), ",") {
+		opt, err := router.ParseAffinityOption(o)
+		if err != nil {
+			argError(c, "Invalid value for affinity-options '%s'", o)
+		} else {
+			opts = append(opts, *opt)
+		}
+	}
+	return opts
+}
+
+func parseLocators(c *cli.Context) []locator.Locator {
 	var locators []locator.Locator
 
 	insecure := c.Bool("insecure")

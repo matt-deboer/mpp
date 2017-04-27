@@ -9,18 +9,40 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/mpp/pkg/router"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type mppHandler struct {
 	started time.Time
 	router  *router.Router
+	prom    http.Handler
 }
+
+// Namespace is the common namespace shared by metrics, url paths, etc. for this app
+const Namespace = "mpp"
 
 var clusterStatus, _ = template.New("cluster-status").Parse(clusterStatusTemplate)
 
 func newMPPHandler(r *router.Router) *mppHandler {
+
+	buildInfo := prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: Namespace,
+		Name:      "build_info",
+		Help:      "The number of currently selected backends",
+		ConstLabels: prometheus.Labels{
+			"branch":    Branch,
+			"goversion": runtime.Version(),
+			"version":   Version,
+			"revision":  Revision,
+		},
+	})
+	buildInfo.Set(1)
+	prometheus.MustRegister(buildInfo)
+
 	return &mppHandler{
 		router:  r,
+		prom:    promhttp.Handler(),
 		started: time.Now(),
 	}
 }
@@ -28,7 +50,9 @@ func newMPPHandler(r *router.Router) *mppHandler {
 func (p *mppHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path == "/health" {
 		io.WriteString(w, "OK")
-	} else if req.URL.Path == "/cluster-status" {
+	} else if req.URL.Path == "/mpp/metrics" {
+		p.prom.ServeHTTP(w, req)
+	} else if req.URL.Path == "/mpp/status" {
 		data := &templateData{
 			RouterStatus: p.router.Status(),
 			Uptime:       time.Now().Sub(p.started),

@@ -52,23 +52,37 @@ Traffic is routed based on the chosen `--routing-strategy`:
 - `single-most-data`: This strategy always routes traffic to a single prometheus endpoint, determined
   by whichever endpoint contains the _most_ data, measured by total ingested samples count.
 
-- `minimum-history-sticky:{min-history-duration}`: This strategy routes traffic to a randomly selected prometheus endpoint having
-  at least M of sample history, with further requests having the same (cookie-managed) session being routed
-  to the same endpoint.
+- `minimum-history:{min-history-duration}`: This strategy routes traffic to a randomly selected prometheus endpoint having
+  at least M of sample history.
 
-- `random-sticky`: This strategy routes traffic to a randomly selected prometheus endpoint, with further
-  requests having the same (cookie-managed) session being routed to the same endpoint.
+- `random`: This strategy routes traffic to a randomly selected prometheus endpoint.
+
+Session Affinity
+---
+
+Stickiness is configured via the `--affinity-options` flag, which accepts a comma-separated
+list of one or more of the options:
+
+- `cookies`: (endabled by default) Sets a cookie on the first request and uses that in subsequent requests to route
+  to the same backend.
+- `sourceip`: Examines the `X-Forwarded-For` header, falling back to the actual source IP; the chosen route is cached
+  with an LRU-based cache for that value.
 
 
 Health
 ---
 
-The proxy responds with `OK` to requests on the `/health` path.
+The proxy responds with `OK` to requests on the `/mpp/health` path.
 
-Status
+Metrics
 ---
 
-The proxy displays a status summary (see below) on the `/cluster-status` path.
+Prometheus-styel metrics are available at the `/mpp/metrics` path.
+
+Status Page
+---
+
+The proxy displays a status summary (see below) on the `/mpp/status` path.
 
   ![Cluster Status](./cluster-status.png "Cluster Status")
 

@@ -107,40 +107,44 @@ var clusterStatusTemplate = `
 
 	<div class="container-fluid">
 		<h2 id="runtime">Runtime Information</h2>
-    <table class="table table-condensed table-bordered table-striped table-hover">
-      <tbody>
-        <tr>
-          <th>Uptime</th>
-          <td>{{.Uptime}}</td>
-        </tr>
-        <tr>
-          <th>Selector Strategy</th>
-          <td><code>{{.RouterStatus.Strategy}}</code></td>
-        </tr>
+		<table class="table table-condensed table-bordered table-striped table-hover">
+			<tbody>
 				<tr>
-          <th>Comparison Metric</th>
-          <td><code>{{.RouterStatus.ComparisonMetric}}</code></td>
-        </tr>
+					<th>Uptime</th>
+					<td>{{.Uptime}}</td>
+				</tr>
 				<tr>
-          <th>Selection Interval</th>
-          <td>{{.RouterStatus.Interval}}</td>
-        </tr>
-      </tbody>
-    </table>
+					<th>Selector Strategy</th>
+					<td><code>{{.RouterStatus.Strategy}}</code></td>
+				</tr>
+				<tr>
+					<th>Comparison Metric</th>
+					<td><code>{{.RouterStatus.ComparisonMetric}}</code></td>
+				</tr>
+				<tr>
+					<th>Selection Interval</th>
+					<td>{{.RouterStatus.Interval}}</td>
+				</tr>
+				<tr>
+					<th>Affinity Options Enabled</th>
+					<td><code>{{.RouterStatus.AffinityOptions}}</code></td>
+				</tr>
+			</tbody>
+		</table>
 
-    <h2 id="buildinformation">Build Information</h2>
-    <table class="table table-condensed table-bordered table-striped table-hover">
-      <tbody>
-        <tr>
-          <th scope="row">Version</th>
-          <td>{{.Version}}</td>
-        </tr>
-        <tr>
-          <th scope="row">GoVersion</th>
-          <td>{{.GoVersion}}</td>
-        </tr>
-      </tbody>
-    </table>
+		<h2 id="buildinformation">Build Information</h2>
+		<table class="table table-condensed table-bordered table-striped table-hover">
+			<tbody>
+				<tr>
+					<th scope="row">Version</th>
+					<td>{{.Version}}</td>
+				</tr>
+				<tr>
+					<th scope="row">GoVersion</th>
+					<td>{{.GoVersion}}</td>
+				</tr>
+			</tbody>
+		</table>
 		
 		<h2 id="runtime">Prometheus Endpoints</h2>
 		<table class="table table-condensed table-bordered table-striped table-hover">

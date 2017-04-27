@@ -99,8 +99,6 @@ type Strategy interface {
 	Description() string
 	// ComparisonMetricName gets the name of the comparison metric/calculation used to make a selection
 	ComparisonMetricName() string
-	// RequiresStickySessions answers whether this strategy needs sticky sessions
-	RequiresStickySessions() bool
 	// NextIndex returns the index of the target that should be used to field the next request
 	NextIndex(targets []*url.URL) int
 }
