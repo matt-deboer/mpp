@@ -1,20 +1,28 @@
 {
-    "memo": "8578b7d990c788957a5233b2ed5154d1a59d0f7c6c004e57328c2f385fdfde99",
+    "memo": "f47f3c44bd5c8a776223f5fd5d3bfcbfbf99e0cc3b1fab6da1ad51f4d5aafd34",
     "projects": [
+        {
+            "name": "github.com/PuerkitoBio/purell",
+            "version": "v1.1.0",
+            "revision": "0bcb03f4b4d0a9428594752bd2a3b9aa0a9d4bd4",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/PuerkitoBio/urlesc",
+            "branch": "master",
+            "revision": "bbf7a2afc14f93e1e0a5c06df524fbd75e5031e5",
+            "packages": [
+                "."
+            ]
+        },
         {
             "name": "github.com/Sirupsen/logrus",
             "version": "v0.10.0",
             "revision": "4b6ea7319e214d98c938f12692336f7ca9348d6b",
             "packages": [
                 "."
-            ]
-        },
-        {
-            "name": "github.com/armon/go-metrics",
-            "branch": "master",
-            "revision": "93f237eba9b0602f3e73710416558854a81d9337",
-            "packages": [
-                "prometheus"
             ]
         },
         {
@@ -26,9 +34,100 @@
             ]
         },
         {
+            "name": "github.com/blang/semver",
+            "version": "v3.5.0",
+            "revision": "b38d23b8782a487059e8fc8773e9a5b228a77cb6",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/davecgh/go-spew",
+            "version": "v1.1.0",
+            "revision": "346938d642f2ec3594ed81d874461961cd0faa76",
+            "packages": [
+                "spew"
+            ]
+        },
+        {
+            "name": "github.com/docker/distribution",
+            "version": "v2.6.1",
+            "revision": "a25b9ef0c9fe242ac04bb20d3a028442b7d266b6",
+            "packages": [
+                "digest",
+                "reference"
+            ]
+        },
+        {
             "name": "github.com/donovanhide/eventsource",
             "branch": "master",
             "revision": "fd1de70867126402be23c306e1ce32828455d85b",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/emicklei/go-restful",
+            "version": "2.2.0",
+            "revision": "cf834cf8da5b681af81bde6fa32304e6ce8eec71",
+            "packages": [
+                ".",
+                "log"
+            ]
+        },
+        {
+            "name": "github.com/ghodss/yaml",
+            "version": "v1.0.0",
+            "revision": "0ca9ea5df5451ffdf184b4428c902747c2c11cd7",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/go-openapi/jsonpointer",
+            "branch": "master",
+            "revision": "779f45308c19820f1a69e9a4cd965f496e0da10f",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/go-openapi/jsonreference",
+            "branch": "master",
+            "revision": "36d33bfe519efae5632669801b180bf1a245da3b",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/go-openapi/spec",
+            "branch": "master",
+            "revision": "e51c28f07047ad90caff03f6450908720d337e0c",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/go-openapi/swag",
+            "branch": "master",
+            "revision": "24ebf76d720bab64f62824d76bced3184a65490d",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/gogo/protobuf",
+            "version": "v0.4",
+            "revision": "100ba4e885062801d56799d78530b73b178a78f3",
+            "packages": [
+                "proto",
+                "sortkeys"
+            ]
+        },
+        {
+            "name": "github.com/golang/glog",
+            "branch": "master",
+            "revision": "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
             "packages": [
                 "."
             ]
@@ -50,6 +149,14 @@
             ]
         },
         {
+            "name": "github.com/google/gofuzz",
+            "branch": "master",
+            "revision": "44d81051d367757e1c7c6a5a86423ece9afcf63c",
+            "packages": [
+                "."
+            ]
+        },
+        {
             "name": "github.com/hashicorp/golang-lru",
             "branch": "master",
             "revision": "0a025b7e63adc15a622f29b0b2c4c3848243bbf6",
@@ -59,11 +166,29 @@
             ]
         },
         {
+            "name": "github.com/juju/ratelimit",
+            "branch": "master",
+            "revision": "acf38b000a03e4ab89e40f20f1e548f4e6ac7f72",
+            "packages": [
+                "."
+            ]
+        },
+        {
             "name": "github.com/mailgun/multibuf",
             "branch": "master",
             "revision": "565402cd71fbd9c12aa7e295324ea357e970a61e",
             "packages": [
                 "."
+            ]
+        },
+        {
+            "name": "github.com/mailru/easyjson",
+            "branch": "master",
+            "revision": "3f09c2282fc5ad74b3d04a485311f3173c2431d3",
+            "packages": [
+                "buffer",
+                "jlexer",
+                "jwriter"
             ]
         },
         {
@@ -80,6 +205,14 @@
             "revision": "3247c84500bff8d9fb6d579d800f20b3e091582c",
             "packages": [
                 "pbutil"
+            ]
+        },
+        {
+            "name": "github.com/pborman/uuid",
+            "version": "v1.0",
+            "revision": "a97ce2ca70fa5a848076093f05e639a89ca34d06",
+            "packages": [
+                "."
             ]
         },
         {
@@ -119,10 +252,26 @@
             ]
         },
         {
+            "name": "github.com/spf13/pflag",
+            "branch": "master",
+            "revision": "f1d95a35e132e8a1868023a08932b14f0b8b8fcb",
+            "packages": [
+                "."
+            ]
+        },
+        {
             "name": "github.com/stretchr/testify",
             "revision": "1297dc01ed0a819ff634c89707081a4df43baf6b",
             "packages": [
                 "assert"
+            ]
+        },
+        {
+            "name": "github.com/ugorji/go",
+            "branch": "master",
+            "revision": "708a42d246822952f38190a8d8c4e6b16a0e600c",
+            "packages": [
+                "codec"
             ]
         },
         {
@@ -156,7 +305,11 @@
             "revision": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf",
             "packages": [
                 "context",
-                "context/ctxhttp"
+                "context/ctxhttp",
+                "http2",
+                "http2/hpack",
+                "idna",
+                "lex/httplex"
             ]
         },
         {
@@ -164,6 +317,98 @@
             "revision": "98fc11432b951eb53c62602ba4ae99d03c1fb7e2",
             "packages": [
                 "unix"
+            ]
+        },
+        {
+            "name": "golang.org/x/text",
+            "branch": "master",
+            "revision": "470f45bf29f4147d6fbd7dfd0a02a848e49f5bf4",
+            "packages": [
+                "internal/gen",
+                "internal/triegen",
+                "internal/ucd",
+                "transform",
+                "unicode/cldr",
+                "unicode/norm",
+                "width"
+            ]
+        },
+        {
+            "name": "gopkg.in/inf.v0",
+            "version": "v0.9.0",
+            "revision": "3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "gopkg.in/yaml.v2",
+            "branch": "v2",
+            "revision": "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "k8s.io/client-go",
+            "version": "v2.0.0",
+            "revision": "e121606b0d09b2e1c467183ee46217fa85a6b672",
+            "packages": [
+                "pkg/api",
+                "pkg/api/errors",
+                "pkg/api/meta",
+                "pkg/api/meta/metatypes",
+                "pkg/api/resource",
+                "pkg/api/unversioned",
+                "pkg/api/v1",
+                "pkg/api/validation/path",
+                "pkg/apis/autoscaling",
+                "pkg/apis/batch",
+                "pkg/apis/certificates",
+                "pkg/apis/extensions",
+                "pkg/auth/user",
+                "pkg/conversion",
+                "pkg/conversion/queryparams",
+                "pkg/fields",
+                "pkg/genericapiserver/openapi/common",
+                "pkg/labels",
+                "pkg/runtime",
+                "pkg/runtime/serializer",
+                "pkg/runtime/serializer/json",
+                "pkg/runtime/serializer/protobuf",
+                "pkg/runtime/serializer/recognizer",
+                "pkg/runtime/serializer/streaming",
+                "pkg/runtime/serializer/versioning",
+                "pkg/selection",
+                "pkg/third_party/forked/golang/reflect",
+                "pkg/types",
+                "pkg/util",
+                "pkg/util/cert",
+                "pkg/util/clock",
+                "pkg/util/errors",
+                "pkg/util/flowcontrol",
+                "pkg/util/framer",
+                "pkg/util/integer",
+                "pkg/util/intstr",
+                "pkg/util/json",
+                "pkg/util/labels",
+                "pkg/util/net",
+                "pkg/util/parsers",
+                "pkg/util/rand",
+                "pkg/util/runtime",
+                "pkg/util/sets",
+                "pkg/util/uuid",
+                "pkg/util/validation",
+                "pkg/util/validation/field",
+                "pkg/util/wait",
+                "pkg/util/yaml",
+                "pkg/version",
+                "pkg/watch",
+                "pkg/watch/versioned",
+                "rest",
+                "tools/clientcmd/api",
+                "tools/metrics",
+                "transport"
             ]
         }
     ]

@@ -10,6 +10,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/mpp/pkg/locator"
+	"github.com/matt-deboer/mpp/pkg/locator/kuberneteslocator"
 	"github.com/matt-deboer/mpp/pkg/locator/marathonlocator"
 	"github.com/matt-deboer/mpp/pkg/router"
 	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/minimumhistory"
@@ -44,6 +45,21 @@ func main() {
 			Usage: `The path to a kubeconfig file used to communicate with the kubernetes api server
 				to locate prometheus instances`,
 			EnvVar: "MPP_KUBECONFIG",
+		},
+		cli.StringFlag{
+			Name:   "kube-service-name",
+			Usage:  `The service name used to locate prometheus endpoints; take precedence over 'kube-pod-label-selector'`,
+			EnvVar: "MPP_SERVICE_NAME",
+		},
+		cli.StringFlag{
+			Name:   "kube-pod-label-selector",
+			Usage:  `The label selector used to find prometheus pods`,
+			EnvVar: "MPP_KUBE_POD_LABEL_SELECTOR",
+		},
+		cli.StringFlag{
+			Name:   "kube-port",
+			Usage:  `The port (name or number) where prometheus is listening on individual pods/endpoints`,
+			EnvVar: "MPP_KUBE_PORT",
 		},
 		cli.StringFlag{
 			Name:   "marathon-url",
@@ -168,14 +184,25 @@ func parseLocators(c *cli.Context) []locator.Locator {
 	insecure := c.Bool("insecure")
 	endpointsFile := c.String("endpoints-file")
 	kubeconfig := c.String("kubeconfig")
+	kubeServiceName := c.String("kube-service-name")
+	kubePodLabelSelector := c.String("kube-pod-label-selector")
 	marathonURL := c.String("marathon-url")
 
 	if len(endpointsFile) > 0 {
 		locators = append(locators, locator.NewEndpointsFileLocator(endpointsFile))
 	}
 
-	if len(kubeconfig) > 0 {
-
+	if len(kubeconfig) > 0 || len(kubeServiceName) > 0 || len(kubePodLabelSelector) > 0 {
+		if len(kubeServiceName) == 0 && len(kubePodLabelSelector) == 0 {
+			argError(c, "Kubernetes locator requires one of either 'kube-service-name' or 'kube-pod-label-selector'")
+		}
+		kubePort := c.String("kube-port")
+		locator, err := kuberneteslocator.NewKubernetesLocator(kubeconfig,
+			kubePodLabelSelector, kubePort, kubeServiceName)
+		if err != nil {
+			log.Fatalf("Failed to create kubernetes locator: %v", err)
+		}
+		locators = append(locators, locator)
 	}
 
 	if len(marathonURL) > 0 {
@@ -186,14 +213,16 @@ func parseLocators(c *cli.Context) []locator.Locator {
 		marathonApps := strings.Split(marathonAppsString, ",")
 		marathonPrincipalSecret := c.String("marathon-principal-secret")
 		marathonAuthEndpoint := c.String("marathon-auth-endpoint")
-		locator, err := marathonlocator.NewMarathonLocator(marathonURL, marathonApps, marathonAuthEndpoint, marathonPrincipalSecret, insecure)
+		locator, err := marathonlocator.NewMarathonLocator(marathonURL,
+			marathonApps, marathonAuthEndpoint, marathonPrincipalSecret, insecure)
 		if err != nil {
 			log.Fatalf("Failed to create marathon locator: %v", err)
 		}
 		locators = append(locators, locator)
 	}
 	if len(locators) == 0 {
-		argError(c, "At least one locator mechanism must be configured; specify at least one of: --marathon-url, --kubeconfig, --static-endpoints")
+		argError(c, `At least one locator mechanism must be configured; specify at least one of: `+
+			`--marathon-url, --kubeconfig/--kube-service-name/--kube-pod-label-selector, --static-endpoints`)
 	}
 
 	return locators

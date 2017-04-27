@@ -14,7 +14,7 @@ import (
 // AffinityOption represents supported options for session affinity
 type AffinityOption uint8
 
-const cookieName = "MMP.Route"
+const cookieName = "MPP.Route"
 
 const (
 	// AffinityByCookies implies session affinity by cookies
