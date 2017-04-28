@@ -46,8 +46,9 @@ endpoints file which is scanned on a regular interval.
 - `--kube-port`: The port for pods/endpoints on which prometheus is lisetening; if not specified, the
   first TCP port found will be used
 
-**Endpoints file** discovery is configured using `--endpoints-file` -- the path to a file containing one
-endpoint per line.
+**Endpoints file** discovery is configured using:
+
+- `--endpoints-file` -- the path to a file containing one endpoint per line.
 
 Selection
 ---
