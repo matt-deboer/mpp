@@ -23,6 +23,10 @@ MPP acts as a proxy sitting in front of multiple prometheus instances, choosing 
 to receive requests based on a configurable selector strategy. Candidate instances are found using
 a configured _locator_ mechanism, of which Marathon, Kubernetes and endpoints file are supported.
 
+Request are buffered and retried (up to 2 times), and a re-selection is performed in process after the
+first failure for a given request--which should result in seemless failover, assuming a viable backend
+candidate is available.
+
 Discovery
 ---
 
