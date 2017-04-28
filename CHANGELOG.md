@@ -1,14 +1,14 @@
 changelog
 ===
 
-v0.2.0-a2
+v0.2.0-a2 [2017-04-27]
 ---
 
 **fixes:**
 
 - added `--kube-namespace` requirement for kubernetes deployments to fix bug in k8s locator
 
-v0.2.0-a1
+v0.2.0-a1 [2017-04-27]
 ---
 
 **features:**
