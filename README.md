@@ -92,7 +92,7 @@ Prometheus-formatted metrics are available at the `/mpp/metrics` path.
 Full Usage
 ---
 
-```shell
+```text
 NAME:
    mpp - Launch a dynamically configured proxy over multiple prometheus endpoints
     which selects endpoints based on configurable criteria.
