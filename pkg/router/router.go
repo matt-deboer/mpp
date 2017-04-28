@@ -12,6 +12,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/mpp/pkg/locator"
 	"github.com/matt-deboer/mpp/pkg/selector"
+	"github.com/matt-deboer/mpp/pkg/version"
 	"github.com/vulcand/oxy/buffer"
 	"github.com/vulcand/oxy/forward"
 )
@@ -58,7 +59,7 @@ func NewRouter(interval time.Duration, affinityOptions []AffinityOption,
 		selector:        sel,
 		affinityOptions: affinityOptions,
 		interval:        interval,
-		metrics:         newMetrics(metricsNamespace),
+		metrics:         newMetrics(version.Name),
 		theConch:        make(chan struct{}, 1),
 	}
 

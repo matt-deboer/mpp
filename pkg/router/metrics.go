@@ -1,8 +1,8 @@
 package router
 
-import "github.com/prometheus/client_golang/prometheus"
-
-const metricsNamespace = "mpp"
+import (
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 type metrics struct {
 	selectedBackends      prometheus.Gauge

@@ -1,4 +1,4 @@
-package main
+package main // import "github.com/matt-deboer/mpp/pkg/server"
 
 import (
 	"fmt"
@@ -16,29 +16,19 @@ import (
 	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/minimumhistory"
 	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/random"
 	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/singlemostdata"
+	"github.com/matt-deboer/mpp/pkg/version"
 	"github.com/urfave/cli"
-)
-
-var (
-	// Name is set at compile time based on the git repository
-	Name string
-	// Version is set at compile time with the git version
-	Version string
-	// Branch is set at compile time with the git version
-	Branch string
-	// Revision is set at compile time with the git version
-	Revision string
 )
 
 func main() {
 
 	app := cli.NewApp()
-	app.Name = Name
+	app.Name = version.Name
 	app.Usage = `
 		Launch a dynamically configured proxy over multiple prometheus endpoints
 		which selects a single endpoint based on configurable criteria.
 		`
-	app.Version = Version
+	app.Version = version.Version
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name: "kubeconfig",

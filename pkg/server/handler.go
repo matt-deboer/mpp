@@ -9,6 +9,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/mpp/pkg/router"
+	"github.com/matt-deboer/mpp/pkg/version"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -31,10 +32,10 @@ func newMPPHandler(r *router.Router) *mppHandler {
 		Name:      "build_info",
 		Help:      "The number of currently selected backends",
 		ConstLabels: prometheus.Labels{
-			"branch":    Branch,
+			"branch":    version.Branch,
 			"goversion": runtime.Version(),
-			"version":   Version,
-			"revision":  Revision,
+			"version":   version.Version,
+			"revision":  version.Revision,
 		},
 	})
 	buildInfo.Set(1)
@@ -56,7 +57,7 @@ func (p *mppHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		data := &templateData{
 			RouterStatus: p.router.Status(),
 			Uptime:       time.Now().Sub(p.started),
-			Version:      Version,
+			Version:      version.Version,
 			GoVersion:    runtime.Version(),
 		}
 		if log.GetLevel() >= log.DebugLevel {

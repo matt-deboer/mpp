@@ -5,7 +5,7 @@ REPOSITORY     := mattdeboer/mpp
 DOCKER_IMAGE    = ${REPOSITORY}:${VERSION}
 BRANCH         ?= $(shell git rev-parse --abbrev-ref HEAD)
 REVISION       ?= $(shell git rev-parse HEAD)
-LD_FLAGS       ?= -s -X main.Name=$(TARGET) -X main.Revision=$(REVISION) -X main.Branch=$(BRANCH) -X main.Version=$(VERSION)
+LD_FLAGS       ?= -s -X version.Name=$(TARGET) -X version.Revision=$(REVISION) -X version.Branch=$(BRANCH) -X version.Version=$(VERSION)
 
 default: test build
 
