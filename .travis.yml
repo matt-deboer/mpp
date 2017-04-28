@@ -15,6 +15,7 @@ after_deploy:
 - docker login -u $DOCKER_USER -p $DOCKER_PASS
 - export REPO=mattdeboer/mpp
 - docker push $REPO:$TRAVIS_TAG
+- docker push $REPO:${TRAVIS_TAG}-alpine
 - docker tag $REPO:$TRAVIS_TAG $REPO:latest
 - docker push $REPO:latest
 deploy:

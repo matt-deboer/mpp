@@ -2,7 +2,7 @@ VERSION        ?= $(shell git describe --tags --always )
 TARGET         ?= $(shell basename `git rev-parse --show-toplevel`)
 TEST           ?= $(shell go list ./... | grep -v /vendor/)
 REPOSITORY     := mattdeboer/mpp
-DOCKER_IMAGE    = ${REPOSITORY}:${VERSION}
+DOCKER_IMAGE   ?= ${REPOSITORY}:${VERSION}
 BRANCH         ?= $(shell git rev-parse --abbrev-ref HEAD)
 REVISION       ?= $(shell git rev-parse HEAD)
 LD_FLAGS       ?= -s -X github.com/matt-deboer/mpp/pkg/version.Name=$(TARGET) \
@@ -33,7 +33,8 @@ ca-certificates.crt:
 
 docker: ca-certificates.crt
 	@echo "Building ${DOCKER_IMAGE}..."
-	@docker build -t ${DOCKER_IMAGE} .
+	@docker build -t ${DOCKER_IMAGE} -f Dockerfile.scratch .
+	@docker build -t ${DOCKER_IMAGE}-alpine -f Dockerfile.alpine .
 
 clean:
 	@rm -rf bin/
