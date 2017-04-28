@@ -49,7 +49,7 @@ func newMPPHandler(r *router.Router) *mppHandler {
 }
 
 func (p *mppHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	if req.URL.Path == "/health" {
+	if req.URL.Path == "/mpp/health" {
 		io.WriteString(w, "OK")
 	} else if req.URL.Path == "/mpp/metrics" {
 		p.prom.ServeHTTP(w, req)
