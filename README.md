@@ -71,8 +71,8 @@ list of one or more of the options:
 
 - `cookies`: (endabled by default) Sets a cookie on the first request and uses that in subsequent requests to route
   to the same backend.
-- `sourceip`: Examines the `X-Forwarded-For` header, falling back to the actual source IP; the chosen route is cached
-  with an LRU-based cache for that value.
+- `sourceip`: Examines the `X-Forwarded-For` header, falling back to the actual source IP; the chosen route is stored
+  in an LRU-based cache for that value.
 
 
 Health
