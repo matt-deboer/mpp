@@ -11,7 +11,7 @@ of multiple prometheus instances deployed as HA duplicates of each other.
 Motivation
 ---
 
-As the recommended pattern for running Prometheus in HA mode is to [run multiple duplicate instances](https://github.com/prometheus/prometheus/issues/1500)
+As the recommended pattern for running Prometheus in HA mode is to [run duplicate instances](https://github.com/prometheus/prometheus/issues/1500)
 (same configuration, scraping the same targets independently), a method is needed to route queries
 appropriately between those instances to provide a seemless experience for clients when individual
 instance failures occur.
