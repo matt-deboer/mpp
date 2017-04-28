@@ -87,7 +87,7 @@ The proxy responds with `OK` to requests on the `/mpp/health` path.
 Metrics
 ---
 
-Prometheus-styel metrics are available at the `/mpp/metrics` path.
+Prometheus-formatted metrics are available at the `/mpp/metrics` path.
 
 Status Page
 ---
