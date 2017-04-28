@@ -33,13 +33,14 @@ endpoints file which is scanned on a regular interval.
 
 - `--marathon-url`: The marathon API endpoint to contact
 - `--marathon-apps`: A comma-separated list of apps to query for endpoints
-- `--marathon-principal-secret`: (Optional) A DCOS principal-secret object used to authenticate to Marathon
-- `--marathon-auth-endpoint`: (Optional) Overrides the auth-endpoint contained within the principal secret object
+- `--marathon-principal-secret`: (optional) A DCOS principal-secret object used to authenticate to Marathon
+- `--marathon-auth-endpoint`: (optional) Overrides the auth-endpoint contained within the principal secret object
 
 **Kubernetes** discovery is configured using:
 
-- `--kubeconfig`: The path to the kubeconfig file used to locate the cluster and authenticate; if not specified,
+- `--kubeconfig`: (optional) The path to the kubeconfig file used to locate the cluster and authenticate; if not specified,
   in-cluster config will be used
+- `--kube-namespace`: The namespace in which the pods/endpoints exist
 - `--kube-service-name`: The name of a service whose endpoints will be used to locate prometheus
 - `--kube-pod-label-selector`: A pod-selector string used to locate the pods containing the endpoints
 - `--kube-port`: The port for pods/endpoints on which prometheus is lisetening; if not specified, the
