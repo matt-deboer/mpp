@@ -2,6 +2,7 @@ package kuberneteslocator
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/matt-deboer/mpp/pkg/locator"
 	"k8s.io/client-go/kubernetes"
@@ -12,7 +13,8 @@ import (
 
 type kubeLocator struct {
 	labelSelector string
-	port          string
+	portName      string
+	portNumber    int32
 	serviceName   string
 	clientset     *kubernetes.Clientset
 }
@@ -40,10 +42,13 @@ func NewKubernetesLocator(kubeconfig, labelSelector, port, serviceName string) (
 		panic(err.Error())
 	}
 
+	portNumber, _ := strconv.ParseInt(port, 10, 32)
+
 	return &kubeLocator{
 		clientset:     clientset,
 		labelSelector: labelSelector,
-		port:          port,
+		portName:      port,
+		portNumber:    int32(portNumber),
 		serviceName:   serviceName,
 	}, nil
 }
@@ -53,15 +58,15 @@ func (k *kubeLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 
 	endpoints := []string{}
 	if len(k.serviceName) > 0 {
-		endpoints, err := k.clientset.Core().Endpoints("").Get(k.serviceName, nil)
+		endp, err := k.clientset.Core().Endpoints("").Get(k.serviceName)
 		if err != nil {
 			return nil, err
 		}
-		var port int
-		for _, p := range endpoints.Subsets[0].Ports {
+		var port int32
+		for _, p := range endp.Subsets[0].Ports {
 			if p.Protocol == v1.ProtocolTCP {
-				if len(k.port) > 0 {
-					if (len(p.Name) > 0 && k.port == p.Name) || p.Port.String() == k.port {
+				if len(k.portName) > 0 {
+					if k.portName == p.Name || p.Port == k.portNumber {
 						port = p.Port
 						break
 					}
@@ -71,7 +76,7 @@ func (k *kubeLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 				}
 			}
 		}
-		for _, a := range endpoints.Subsets[0].Addresses {
+		for _, a := range endp.Subsets[0].Addresses {
 			endpoints = append(endpoints, fmt.Sprintf("http://%s:%d", a.IP, port))
 		}
 	} else {
@@ -82,14 +87,14 @@ func (k *kubeLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 			return nil, err
 		}
 		for _, pod := range pods.Items {
-			var port int
+			var port int32
 			for _, c := range pod.Spec.Containers {
 				for _, p := range c.Ports {
 					if p.Protocol == v1.ProtocolTCP {
-						if len(k.port) > 0 {
-							if (len(p.Name) > 0 && k.port == p.Name) || p.ContainerPort.String() == k.port {
+						if len(k.portName) > 0 {
+							if k.portName == p.Name || p.ContainerPort == k.portNumber {
 								// 'port' flag was specified; match by name or port value
-								port = p.Port
+								port = p.ContainerPort
 							}
 						} else {
 							// 'port' flag not specified; take the first (TCP) port we found
