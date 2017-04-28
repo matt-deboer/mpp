@@ -67,10 +67,12 @@ func (k *kubeLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 			if p.Protocol == v1.ProtocolTCP {
 				if len(k.portName) > 0 {
 					if k.portName == p.Name || p.Port == k.portNumber {
+						// 'port' flag was specified; match by name or port value
 						port = p.Port
 						break
 					}
 				} else {
+					// 'port' flag not specified; take the first (TCP) port we found
 					port = p.Port
 					break
 				}
