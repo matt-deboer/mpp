@@ -1,11 +1,14 @@
 VERSION        ?= $(shell git describe --tags --always )
-TARGET         := $(shell basename `git rev-parse --show-toplevel`)
+TARGET         ?= $(shell basename `git rev-parse --show-toplevel`)
 TEST           ?= $(shell go list ./... | grep -v /vendor/)
 REPOSITORY     := mattdeboer/mpp
 DOCKER_IMAGE    = ${REPOSITORY}:${VERSION}
 BRANCH         ?= $(shell git rev-parse --abbrev-ref HEAD)
 REVISION       ?= $(shell git rev-parse HEAD)
-LD_FLAGS       ?= -s -X version.Name=$(TARGET) -X version.Revision=$(REVISION) -X version.Branch=$(BRANCH) -X version.Version=$(VERSION)
+LD_FLAGS       ?= -s -X github.com/matt-deboer/mpp/pkg/version.Name=$(TARGET) \
+	-X github.com/matt-deboer/mpp/pkg/version.Revision=$(REVISION) \
+	-X github.com/matt-deboer/mpp/pkg/version.Branch=$(BRANCH) \
+	-X github.com/matt-deboer/mpp/pkg/version.Version=$(VERSION)
 
 default: test build
 

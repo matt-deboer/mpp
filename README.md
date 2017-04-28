@@ -89,6 +89,52 @@ Metrics
 
 Prometheus-formatted metrics are available at the `/mpp/metrics` path.
 
+Full Usage
+---
+
+```shell
+NAME:
+   mpp - Launch a dynamically configured proxy over multiple prometheus endpoints
+    which selects endpoints based on configurable criteria.
+
+
+USAGE:
+   mpp [global options] command [command options] [arguments...]
+
+VERSION:
+   v0.2.0-a2
+
+COMMANDS:
+     help, h  Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --kubeconfig value                 The path to a kubeconfig file used to communicate with the kubernetes api server
+                                            to locate prometheus instances [$MPP_KUBECONFIG]
+   --kube-service-name value          The service name used to locate prometheus endpoints; take precedence over 'kube-pod-label-selector' [$MPP_SERVICE_NAME]
+   --kube-pod-label-selector value    The label selector used to find prometheus pods [$MPP_KUBE_POD_LABEL_SELECTOR]
+   --kube-namespace value             The namespace in which prometheus pods/endpoints exist [$MPP_KUBE_NAMESPACE]
+   --kube-port value                  The port (name or number) where prometheus is listening on individual pods/endpoints [$MPP_KUBE_PORT]
+   --marathon-url value               The URL for the marathon API endpoint used to locate prometheus instances [$MPP_MARATHON_URL]
+   --marathon-apps value              A comma-separated list of marathon app IDs whose tasks will be queried for
+                                            prometheus endpoints [$MPP_MARATHON_APPS]
+   --insecure value, -k value         Whether connections to https endpoints with unverifiable certs are allowed [$MPP_INSECURE_CERTS]
+   --marathon-principal-secret value  The principal secret used to handle authentication with marathon [$MPP_MARATHON_PRINCIPAL_SECRET]
+   --marathon-auth-endpoint value     The authentication endpoint to use with the 'marathon-principal-secret', overriding the value
+                                            contained within the secret [$MPP_MARATHON_AUTH_ENDPOINT]
+   --endpoints-file value             A file path containing a list of endpoints to use, one per line. This file is re-read at every
+                                            selection interval [$MPP_ENDPOINTS_FILE]
+   --routing-strategy value           The strategy to use for choosing viable prometheus enpoint(s) from those located;
+                                            valid choices include: 'single-most-data', 'random', 'minimum-history' (default: "single-most-data") [$MPP_ROUTING_STRATEGY]
+   --selection-interval value         The interval at which selections are performed; note that selection is
+                                            automatically performed upon backend failures (default: "10s") [$MPP_SELECTION_INTERVAL]
+   --affinity-options value           A comma-separated list of sticky-session modes to enable, of which 'cookie', and 'ip'
+                                            are valid options (default: "cookies") [$MPP_AFFINITY_OPTIONS]
+   --port value                       The port on which the proxy will listen (default: 9090) [$MPP_PORT]
+   --verbose, -V                      Log debugging information [$MPP_VERBOSE]
+   --help, -h                         show help
+   --version, -v                      print the version
+```
+
 Status Page
 ---
 

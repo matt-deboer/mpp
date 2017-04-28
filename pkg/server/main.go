@@ -24,11 +24,10 @@ func main() {
 
 	app := cli.NewApp()
 	app.Name = version.Name
-	app.Usage = `
-		Launch a dynamically configured proxy over multiple prometheus endpoints
-		which selects a single endpoint based on configurable criteria.
-		`
 	app.Version = version.Version
+	app.Usage = `Launch a dynamically configured proxy over multiple prometheus endpoints
+		which selects endpoints based on configurable criteria.
+		`
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name: "kubeconfig",
@@ -39,7 +38,7 @@ func main() {
 		cli.StringFlag{
 			Name:   "kube-service-name",
 			Usage:  `The service name used to locate prometheus endpoints; take precedence over 'kube-pod-label-selector'`,
-			EnvVar: "MPP_SERVICE_NAME",
+			EnvVar: "MPP_KUBE_SERVICE_NAME",
 		},
 		cli.StringFlag{
 			Name:   "kube-pod-label-selector",
@@ -68,7 +67,7 @@ func main() {
 			EnvVar: "MPP_MARATHON_APPS",
 		},
 		cli.StringFlag{
-			Name:   "insecure, k",
+			Name:   "insecure-certs, k",
 			Usage:  `Whether connections to https endpoints with unverifiable certs are allowed`,
 			EnvVar: "MPP_INSECURE_CERTS",
 		},
@@ -176,7 +175,7 @@ func parseAffinityOptions(c *cli.Context) []router.AffinityOption {
 func parseLocators(c *cli.Context) []locator.Locator {
 	var locators []locator.Locator
 
-	insecure := c.Bool("insecure")
+	insecure := c.Bool("insecure-certs")
 	endpointsFile := c.String("endpoints-file")
 	kubeconfig := c.String("kubeconfig")
 	kubeNamespace := c.String("kube-namespace")
