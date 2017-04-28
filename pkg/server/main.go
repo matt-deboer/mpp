@@ -48,6 +48,7 @@ func main() {
 		cli.StringFlag{
 			Name:   "kube-namespace",
 			Usage:  `The namespace in which prometheus pods/endpoints exist`,
+			Value:  "default",
 			EnvVar: "MPP_KUBE_NAMESPACE",
 		},
 		cli.StringFlag{

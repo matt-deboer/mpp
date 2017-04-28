@@ -45,6 +45,8 @@ type Status struct {
 
 type urlRewriter func(u *url.URL)
 
+var noOpRewriter = func(u *url.URL) {}
+
 // NewRouter constructs a new router based on the provided stategy and locators
 func NewRouter(interval time.Duration, affinityOptions []AffinityOption,
 	locators []locator.Locator, strategyArgs ...string) (*Router, error) {
@@ -59,6 +61,7 @@ func NewRouter(interval time.Duration, affinityOptions []AffinityOption,
 		selector:        sel,
 		affinityOptions: affinityOptions,
 		interval:        interval,
+		rewriter:        noOpRewriter,
 		metrics:         newMetrics(version.Name),
 		theConch:        make(chan struct{}, 1),
 	}
@@ -106,9 +109,11 @@ func (r *Router) doSelection() {
 				log.Errorf("Selector returned no valid selection, and error: %v", err)
 				if r.selection == nil {
 					r.selection = result
+					r.rewriter = noOpRewriter
 				}
 			} else {
 				r.selection = result
+				r.rewriter = noOpRewriter
 				log.Warnf("Selector returned no valid selection")
 			}
 		} else {
