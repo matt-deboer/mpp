@@ -47,6 +47,11 @@ func main() {
 			EnvVar: "MPP_KUBE_POD_LABEL_SELECTOR",
 		},
 		cli.StringFlag{
+			Name:   "kube-namespace",
+			Usage:  `The namespace in which prometheus pods/endpoints exist`,
+			EnvVar: "MPP_KUBE_NAMESPACE",
+		},
+		cli.StringFlag{
 			Name:   "kube-port",
 			Usage:  `The port (name or number) where prometheus is listening on individual pods/endpoints`,
 			EnvVar: "MPP_KUBE_PORT",
@@ -174,6 +179,7 @@ func parseLocators(c *cli.Context) []locator.Locator {
 	insecure := c.Bool("insecure")
 	endpointsFile := c.String("endpoints-file")
 	kubeconfig := c.String("kubeconfig")
+	kubeNamespace := c.String("kube-namespace")
 	kubeServiceName := c.String("kube-service-name")
 	kubePodLabelSelector := c.String("kube-pod-label-selector")
 	marathonURL := c.String("marathon-url")
@@ -182,13 +188,13 @@ func parseLocators(c *cli.Context) []locator.Locator {
 		locators = append(locators, locator.NewEndpointsFileLocator(endpointsFile))
 	}
 
-	if len(kubeconfig) > 0 || len(kubeServiceName) > 0 || len(kubePodLabelSelector) > 0 {
+	if len(kubeNamespace) > 0 {
 		if len(kubeServiceName) == 0 && len(kubePodLabelSelector) == 0 {
 			argError(c, "Kubernetes locator requires one of either 'kube-service-name' or 'kube-pod-label-selector'")
 		}
 		kubePort := c.String("kube-port")
 		locator, err := kuberneteslocator.NewKubernetesLocator(kubeconfig,
-			kubePodLabelSelector, kubePort, kubeServiceName)
+			kubeNamespace, kubePodLabelSelector, kubePort, kubeServiceName)
 		if err != nil {
 			log.Fatalf("Failed to create kubernetes locator: %v", err)
 		}
@@ -212,7 +218,7 @@ func parseLocators(c *cli.Context) []locator.Locator {
 	}
 	if len(locators) == 0 {
 		argError(c, `At least one locator mechanism must be configured; specify at least one of: `+
-			`--marathon-url, --kubeconfig/--kube-service-name/--kube-pod-label-selector, --static-endpoints`)
+			`--marathon-url, --kubeconfig/--kube-namespace/--kube-service-name/--kube-pod-label-selector, --static-endpoints`)
 	}
 
 	return locators

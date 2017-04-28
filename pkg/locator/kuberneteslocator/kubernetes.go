@@ -15,12 +15,13 @@ type kubeLocator struct {
 	labelSelector string
 	portName      string
 	portNumber    int32
+	namespace     string
 	serviceName   string
 	clientset     *kubernetes.Clientset
 }
 
 // NewKubernetesLocator generates a new marathon prometheus locator
-func NewKubernetesLocator(kubeconfig, labelSelector, port, serviceName string) (locator.Locator, error) {
+func NewKubernetesLocator(kubeconfig, namespace, labelSelector, port, serviceName string) (locator.Locator, error) {
 
 	var config *rest.Config
 	if len(kubeconfig) > 0 {
@@ -47,6 +48,7 @@ func NewKubernetesLocator(kubeconfig, labelSelector, port, serviceName string) (
 	return &kubeLocator{
 		clientset:     clientset,
 		labelSelector: labelSelector,
+		namespace:     namespace,
 		portName:      port,
 		portNumber:    int32(portNumber),
 		serviceName:   serviceName,
@@ -58,7 +60,7 @@ func (k *kubeLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 
 	endpoints := []string{}
 	if len(k.serviceName) > 0 {
-		endp, err := k.clientset.Core().Endpoints("").Get(k.serviceName)
+		endp, err := k.clientset.Core().Endpoints(k.namespace).Get(k.serviceName)
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +84,7 @@ func (k *kubeLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 			endpoints = append(endpoints, fmt.Sprintf("http://%s:%d", a.IP, port))
 		}
 	} else {
-		pods, err := k.clientset.Core().Pods("").List(v1.ListOptions{
+		pods, err := k.clientset.Core().Pods(k.namespace).List(v1.ListOptions{
 			LabelSelector: k.labelSelector,
 		})
 		if err != nil {

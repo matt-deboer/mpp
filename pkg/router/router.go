@@ -103,7 +103,10 @@ func (r *Router) doSelection() {
 
 		if result.Selection == nil || len(result.Selection) == 0 {
 			if err != nil {
-				log.Errorf("Current selection will not be updated; selector returned no result, and error: %v", err)
+				log.Errorf("Selector returned no valid selection, and error: %v", err)
+				if r.selection == nil {
+					r.selection = result
+				}
 			} else {
 				r.selection = result
 				log.Warnf("Selector returned no valid selection")
