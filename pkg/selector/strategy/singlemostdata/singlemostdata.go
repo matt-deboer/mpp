@@ -1,15 +1,12 @@
 package singlemostdata
 
 import (
-	"context"
 	"fmt"
 	"net/url"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/mpp/pkg/locator"
 	"github.com/matt-deboer/mpp/pkg/selector"
-	"github.com/prometheus/common/model"
 )
 
 const (
@@ -60,24 +57,19 @@ func (s *Selector) Select(endpoints []*locator.PrometheusEndpoint) (err error) {
 	for i, endpoint := range endpoints {
 		endpoint.Selected = false
 		if endpoint.QueryAPI != nil {
-			value, err := endpoint.QueryAPI.Query(context.TODO(), comparisonMetricName, time.Now())
+			scraped, err := locator.ScrapeMetric(endpoint.Address, "prometheus_local_storage_ingested_samples_total")
 			if err != nil {
 				log.Errorf("Endpoint %v returned error: %v", endpoint, err)
 				endpoint.Error = err
 			} else {
 				if log.GetLevel() >= log.DebugLevel {
-					log.Debugf("Endpoint %v returned value: %v", endpoint, value)
+					log.Debugf("Endpoint %v returned value: %v", endpoint, scraped)
 				}
-				if value.Type() == model.ValVector {
-					sampleValue := int64(value.(model.Vector)[0].Value)
-					endpoint.ComparisonMetricValue = sampleValue
-					if sampleValue > mostData {
-						mostData = sampleValue
-						mostDataIndex = i
-					}
-				} else {
-					endpoint.Error = fmt.Errorf("Endpoint %v returned unexpected type: %v", endpoint, value.Type())
-					log.Error(endpoint.Error)
+				sampleValue := int64(scraped.Value)
+				endpoint.ComparisonMetricValue = sampleValue
+				if sampleValue > mostData {
+					mostData = sampleValue
+					mostDataIndex = i
 				}
 			}
 		}

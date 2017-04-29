@@ -43,38 +43,38 @@ func NewSelector(locators []locator.Locator, strategyArgs ...string) (*Selector,
 // Select performs selection of a/all viable prometheus endpoint target(s)
 func (s *Selector) Select() (result *Result, err error) {
 
-	endpoints := make([]*locator.PrometheusEndpoint, 0, 3)
+	result = &Result{
+		Candidates: make([]*locator.PrometheusEndpoint, 0, 3),
+	}
+
 	for _, loc := range s.locators {
-		clients, err := loc.Endpoints()
+		endpoints, err := loc.Endpoints()
 		if err != nil {
-			if clients != nil && len(clients) > 0 {
-				endpoints = append(endpoints, clients...)
-				log.Warnf("Locator %v resolved the following endpoints: %v, with errors: %v", loc, clients, err)
+			if endpoints != nil && len(endpoints) > 0 {
+				result.Candidates = append(result.Candidates, endpoints...)
+				log.Warnf("Locator %v resolved the following endpoints: %v, with errors: %v", loc, endpoints, err)
 			} else {
 				log.Errorf("Locator %v failed to resolve endpoints: %v", loc, err)
 			}
 		} else {
-			endpoints = append(endpoints, clients...)
+			result.Candidates = append(result.Candidates, endpoints...)
 			if log.GetLevel() >= log.DebugLevel {
-				log.Debugf("Locator %v resolved the following endpoints: %v", loc, clients)
+				log.Debugf("Locator %v resolved the following endpoints: %v", loc, endpoints)
 			}
 		}
 	}
-	if len(endpoints) == 0 {
-		return nil, fmt.Errorf("No endpoints returned by any locators")
+
+	if len(result.Candidates) == 0 {
+		return result, fmt.Errorf("No endpoints returned by any locators")
 	}
 
-	result = &Result{
-		Candidates: endpoints,
-	}
-
-	err = s.Strategy.Select(endpoints)
+	err = s.Strategy.Select(result.Candidates)
 	if err != nil {
 		return result, err
 	}
 
-	result.Selection = make([]*url.URL, 0, len(endpoints))
-	for _, endpoint := range endpoints {
+	result.Selection = make([]*url.URL, 0, len(result.Candidates))
+	for _, endpoint := range result.Candidates {
 		if endpoint.Selected {
 			target, err := url.ParseRequestURI(endpoint.Address)
 			if err != nil {

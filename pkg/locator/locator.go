@@ -1,9 +1,12 @@
 package locator
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io/ioutil"
+	"math/big"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -11,7 +14,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/prometheus/client_golang/api/prometheus"
-	"github.com/prometheus/common/model"
 )
 
 var (
@@ -64,31 +66,93 @@ func ToPrometheusClients(endpointURLs []string) ([]*PrometheusEndpoint, error) {
 	for _, endpoint := range endpointURLs {
 		addr := strings.Trim(endpoint, " ")
 		if len(addr) > 0 {
+			var uptime time.Duration
+			var queryAPI prometheus.QueryAPI
 			client, err := prometheus.New(prometheus.Config{
 				Address: addr,
 			})
 			if err == nil {
-				queryAPI := prometheus.NewQueryAPI(client)
-				result, err := queryAPI.Query(context.TODO(), "(time() - max(process_start_time_seconds{job=\"prometheus\"}))", time.Now())
+				// Scape the /metrics endpoint of the individual prometheus instance, since
+				// self-scaping of prometheus' own metrics might not be configured
 				if log.GetLevel() >= log.DebugLevel {
-					log.Debugf("Endpoint %v returned uptime result: %v", addr, result)
+					log.Debugf("Testing %s/metrics", addr)
 				}
-				if err == nil {
-					if vector, ok := result.(model.Vector); ok && len(vector) > 0 {
-						uptime := time.Duration(float64(result.(model.Vector)[0].Value)) * time.Second
-						endpoints = append(endpoints, &PrometheusEndpoint{QueryAPI: prometheus.NewQueryAPI(client), Address: addr, Uptime: uptime})
-						continue
-					} else {
-						log.Errorf("Endpoint %v returned unexpected uptime result: %v", addr, result)
-						err = fmt.Errorf("Unexpected uptime result: '%v'", result)
+				scraped, err := ScrapeMetric(addr, "process_start_time_seconds")
+				if err == nil && scraped != nil {
+					processStartTimeSeconds := scraped.Value
+					uptime = time.Duration(time.Now().UTC().Unix()-int64(processStartTimeSeconds)) * time.Second
+					if log.GetLevel() >= log.DebugLevel {
+						log.Debugf("Parsed current uptime for %s: %s", addr, uptime)
+					}
+					queryAPI = prometheus.NewQueryAPI(client)
+					_, err = queryAPI.Query(context.TODO(), "up", time.Now())
+					if err != nil && log.GetLevel() >= log.DebugLevel {
+						log.Debugf("Query 'up' returned error: %v", err)
 					}
 				}
 			}
-			endpoints = append(endpoints, &PrometheusEndpoint{Address: addr, Uptime: time.Duration(0), Error: err})
+
+			if err == nil {
+				endpoints = append(endpoints, &PrometheusEndpoint{QueryAPI: queryAPI, Address: addr, Uptime: uptime})
+			} else {
+				log.Errorf("Failed to resolve build_info and uptime for %v: %v", addr, err)
+				endpoints = append(endpoints, &PrometheusEndpoint{Address: addr, Uptime: time.Duration(0), Error: err})
+			}
 		}
 	}
 	if len(endpoints) == 0 {
 		return nil, fmt.Errorf("Unable to locate any potential endpoints")
 	}
 	return endpoints, nil
+}
+
+// LabeledValue represents a persed metric instance
+type LabeledValue struct {
+	Name   string
+	Labels string
+	Value  float64
+}
+
+func (lv *LabeledValue) String() string {
+	return fmt.Sprintf("%s%s %f", lv.Name, lv.Labels, lv.Value)
+}
+
+// ScrapeMetric parses metrics in a simple fashion, returning
+// the first instance of each metric for a given name; results may be unexpected
+// for metrics with multiple instances
+func ScrapeMetric(addr string, name string) (*LabeledValue, error) {
+
+	resp, err := http.Get(fmt.Sprintf("%s/metrics", addr))
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%s/metrics returned %d", addr, resp.StatusCode)
+	}
+
+	defer resp.Body.Close()
+	scanner := bufio.NewScanner(resp.Body)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if !strings.HasPrefix(line, "#") {
+			parts := strings.Split(line, " ")
+			nameParts := strings.Split(parts[0], "{")
+			if nameParts[0] == name {
+				f := new(big.Float)
+				_, err := fmt.Sscan(parts[1], f)
+				if err == nil {
+					v := &LabeledValue{Name: nameParts[0]}
+					v.Value, _ = f.Float64()
+					if len(nameParts) > 1 {
+						v.Labels = "{" + nameParts[1]
+					}
+					return v, nil
+				}
+				return nil, fmt.Errorf("Failed to parse value for metric %s", line)
+			}
+		}
+	}
+	return nil, nil
 }

@@ -188,9 +188,9 @@ func parseLocators(c *cli.Context) []locator.Locator {
 		locators = append(locators, locator.NewEndpointsFileLocator(endpointsFile))
 	}
 
-	if len(kubeNamespace) > 0 {
-		if len(kubeServiceName) == 0 && len(kubePodLabelSelector) == 0 {
-			argError(c, "Kubernetes locator requires one of either 'kube-service-name' or 'kube-pod-label-selector'")
+	if len(kubeServiceName) > 0 || len(kubePodLabelSelector) > 0 {
+		if len(kubeNamespace) == 0 {
+			argError(c, `--kube-namespace is required when using the kubernetes locator`)
 		}
 		kubePort := c.String("kube-port")
 		locator, err := kuberneteslocator.NewKubernetesLocator(kubeconfig,

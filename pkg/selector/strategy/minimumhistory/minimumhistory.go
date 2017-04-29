@@ -47,7 +47,7 @@ func (s *Selector) Description() string {
 
 // ComparisonMetricName gets the name of the comparison metric/calculation used to make a selection
 func (s *Selector) ComparisonMetricName() string {
-	return "prometheus_build_info"
+	return "up"
 }
 
 // NextIndex returns the index of the target that should be used to field the next request
@@ -65,7 +65,7 @@ func (s *Selector) Select(endpoints []*locator.PrometheusEndpoint) (err error) {
 	for _, endpoint := range endpoints {
 		endpoint.Selected = false
 		if endpoint.QueryAPI != nil {
-			value, err := endpoint.QueryAPI.Query(context.TODO(), "prometheus_build_info", time.Now().Add(-1*s.minimumHistory))
+			value, err := endpoint.QueryAPI.Query(context.TODO(), "max(up)", time.Now().Add(-1*s.minimumHistory))
 			if err != nil {
 				log.Errorf("Endpoint %v returned error: %v", endpoint, err)
 			} else {

@@ -63,6 +63,7 @@ func NewRouter(interval time.Duration, affinityOptions []AffinityOption,
 		interval:        interval,
 		rewriter:        noOpRewriter,
 		metrics:         newMetrics(version.Name),
+		selection:       &selector.Result{},
 		theConch:        make(chan struct{}, 1),
 	}
 
@@ -104,7 +105,7 @@ func (r *Router) doSelection() {
 
 		result, err := r.selector.Select()
 
-		if result.Selection == nil || len(result.Selection) == 0 {
+		if len(result.Selection) == 0 {
 			if err != nil {
 				log.Errorf("Selector returned no valid selection, and error: %v", err)
 				if r.selection == nil {
