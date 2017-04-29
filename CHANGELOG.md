@@ -4,6 +4,10 @@ changelog
 v0.2.0 [2017-04-28]
 ---
 
+**features:**
+
+- added a `-alpine` release of the docker image
+
 **fixes:**
 
 - fixed inconsistencies in labels and env. variables
