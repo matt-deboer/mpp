@@ -65,23 +65,25 @@ func (k *kubeLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 			return nil, err
 		}
 		var port int32
-		for _, p := range endp.Subsets[0].Ports {
-			if p.Protocol == v1.ProtocolTCP {
-				if len(k.portName) > 0 {
-					if k.portName == p.Name || p.Port == k.portNumber {
-						// 'port' flag was specified; match by name or port value
+		if len(endp.Subsets) > 0 {
+			for _, p := range endp.Subsets[0].Ports {
+				if p.Protocol == v1.ProtocolTCP {
+					if len(k.portName) > 0 {
+						if k.portName == p.Name || p.Port == k.portNumber {
+							// 'port' flag was specified; match by name or port value
+							port = p.Port
+							break
+						}
+					} else {
+						// 'port' flag not specified; take the first (TCP) port we found
 						port = p.Port
 						break
 					}
-				} else {
-					// 'port' flag not specified; take the first (TCP) port we found
-					port = p.Port
-					break
 				}
 			}
-		}
-		for _, a := range endp.Subsets[0].Addresses {
-			endpoints = append(endpoints, fmt.Sprintf("http://%s:%d", a.IP, port))
+			for _, a := range endp.Subsets[0].Addresses {
+				endpoints = append(endpoints, fmt.Sprintf("http://%s:%d", a.IP, port))
+			}
 		}
 	} else {
 		pods, err := k.clientset.Core().Pods(k.namespace).List(v1.ListOptions{
