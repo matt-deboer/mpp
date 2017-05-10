@@ -105,7 +105,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name: "affinity-options",
-			Usage: `A comma-separated list of sticky-session modes to enable, of which 'cookie', and 'ip' 
+			Usage: `A comma-separated list of sticky-session modes to enable, of which 'cookies', and 'sourceip' 
 				are valid options`,
 			Value:  "cookies",
 			EnvVar: "MPP_AFFINITY_OPTIONS",
