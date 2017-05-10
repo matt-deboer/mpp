@@ -127,7 +127,7 @@ GLOBAL OPTIONS:
                                             valid choices include: 'single-most-data', 'random', 'minimum-history' (default: "single-most-data") [$MPP_ROUTING_STRATEGY]
    --selection-interval value         The interval at which selections are performed; note that selection is
                                             automatically performed upon backend failures (default: "10s") [$MPP_SELECTION_INTERVAL]
-   --affinity-options value           A comma-separated list of sticky-session modes to enable, of which 'cookie', and 'ip'
+   --affinity-options value           A comma-separated list of sticky-session modes to enable, of which 'cookies', and 'sourceip'
                                             are valid options (default: "cookies") [$MPP_AFFINITY_OPTIONS]
    --port value                       The port on which the proxy will listen (default: 9090) [$MPP_PORT]
    --verbose, -V                      Log debugging information [$MPP_VERBOSE]
