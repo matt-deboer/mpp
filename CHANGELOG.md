@@ -1,6 +1,20 @@
 changelog
 ===
 
+v0.2.2 [2017-07-06]
+---
+
+**features:**
+
+- added viability check to endpoints;  in addition to the scraped comparision metric value,
+  endpoints must be able to respond to a query for the `up` metric in < 1 sec.
+
+**fixes:**
+
+- updated `random` selector strategy to use direct scrape of `prometheus_build_info`--to
+  be consistent with `single_most_data` strategy, and to allow usage in scenarios where
+  prometheus does not scrape its own metrics.
+
 v0.2.0 [2017-04-28]
 ---
 
