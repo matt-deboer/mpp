@@ -41,6 +41,19 @@ func (pe *PrometheusEndpoint) String() string {
 	return pe.Address
 }
 
+// Viable returns true if the endpoint is able to
+// respond to basic query API requests within a reasonable time
+func (pe *PrometheusEndpoint) Viable() bool {
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
+	_, err := pe.QueryAPI.Query(ctx, "up", time.Now())
+	defer cancel()
+	if err != nil {
+		log.Warnf("Endpoint %v is not viable, based on returned error: %v", pe, err)
+		return false
+	}
+	return true
+}
+
 type staticLocator struct {
 	endpointsFile string
 }
