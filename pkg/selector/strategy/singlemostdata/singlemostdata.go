@@ -67,7 +67,7 @@ func (s *Selector) Select(endpoints []*locator.PrometheusEndpoint) (err error) {
 				}
 				sampleValue := int64(scraped.Value)
 				endpoint.ComparisonMetricValue = sampleValue
-				if sampleValue > mostData {
+				if sampleValue > mostData && endpoint.Viable() {
 					mostData = sampleValue
 					mostDataIndex = i
 				}

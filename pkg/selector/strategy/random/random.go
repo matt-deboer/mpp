@@ -1,7 +1,6 @@
 package random
 
 import (
-	"context"
 	"fmt"
 	"math/rand"
 	"net/url"
@@ -10,7 +9,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/mpp/pkg/locator"
 	"github.com/matt-deboer/mpp/pkg/selector"
-	"github.com/prometheus/common/model"
 )
 
 func init() {
@@ -61,22 +59,17 @@ func (s *Selector) Select(endpoints []*locator.PrometheusEndpoint) (err error) {
 	for _, endpoint := range endpoints {
 		endpoint.Selected = false
 		if endpoint.QueryAPI != nil {
-			value, err := endpoint.QueryAPI.Query(context.TODO(), "prometheus_build_info", time.Now())
+			scraped, err := locator.ScrapeMetric(endpoint.Address, "prometheus_build_info")
 			if err != nil {
 				log.Errorf("Endpoint %v returned error: %v", endpoint, err)
-			} else {
+				endpoint.Error = err
+			} else if endpoint.Viable() {
 				if log.GetLevel() >= log.DebugLevel {
-					log.Debugf("Endpoint %v returned value: %v", endpoint, value)
+					log.Debugf("Endpoint %v returned value: %v", endpoint, scraped)
 				}
-				if value.Type() == model.ValVector {
-					if len(value.String()) > 0 {
-						endpoint.ComparisonMetricValue = value.String()
-						endpoint.Selected = true
-						selected++
-					}
-				} else {
-					log.Errorf("Endpoint %v returned unexpected type: %v", endpoint, value.Type())
-				}
+				endpoint.ComparisonMetricValue = scraped.String()
+				endpoint.Selected = true
+				selected++
 			}
 		}
 	}
