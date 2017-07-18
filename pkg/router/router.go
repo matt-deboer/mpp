@@ -130,8 +130,8 @@ func (r *Router) doSelection() {
 					u.Host = target.Host
 					u.Scheme = target.Scheme
 				}
-			} else if log.GetLevel() >= log.DebugLevel {
-				log.Debugf("Selection is unchanged: %v", r.selection)
+			} else {
+				log.Infof("Selection is unchanged: %v, out of candidates: %v", r.selection.Selection, r.selection.Candidates)
 			}
 			r.selection = result
 		}
@@ -143,9 +143,7 @@ func (r *Router) doSelection() {
 		}
 		r.theConch <- struct{}{}
 	default:
-		if log.GetLevel() >= log.DebugLevel {
-			log.Debugf("Selection is already in-progress; awaiting result")
-		}
+		log.Warnf("Selection is already in-progress; awaiting result")
 		r.selectionInProgress.RLock()
 		defer r.selectionInProgress.RUnlock()
 	}
