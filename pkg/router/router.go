@@ -98,7 +98,14 @@ func (r *Router) doSelection() {
 	select {
 	case _ = <-r.theConch:
 		r.selectionInProgress.Lock()
-		defer r.selectionInProgress.Unlock()
+		defer func() {
+			r.selectionInProgress.Unlock()
+			if log.GetLevel() >= log.DebugLevel {
+				log.Debugf("Returning selection lock")
+			}
+			r.theConch <- struct{}{}
+		}()
+
 		if log.GetLevel() >= log.DebugLevel {
 			log.Debugf("Got selection lock; performing selection")
 		}
@@ -138,14 +145,11 @@ func (r *Router) doSelection() {
 
 		r.metrics.selectedBackends.Set(float64(len(result.Selection)))
 		r.metrics.selectionEvents.Inc()
-		if log.GetLevel() >= log.DebugLevel {
-			log.Debugf("Returning selection lock")
-		}
-		r.theConch <- struct{}{}
+
 	default:
 		log.Warnf("Selection is already in-progress; awaiting result")
 		r.selectionInProgress.RLock()
-		defer r.selectionInProgress.RUnlock()
+		r.selectionInProgress.RUnlock()
 	}
 }
 
