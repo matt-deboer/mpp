@@ -167,8 +167,13 @@ func (r *marathonClient) registerSSESubscription() error {
 	if r.subscribedToSSE {
 		return nil
 	}
+	// Get a member from the cluster
+	marathon, err := r.hosts.getMember()
+	if err != nil {
+		return err
+	}
 
-	request, _, err := r.buildAPIRequest("GET", marathonAPIEventStream, nil)
+	request, err := r.buildAPIRequest("GET", fmt.Sprintf("%s/%s", marathon, marathonAPIEventStream), nil)
 	if err != nil {
 		return err
 	}

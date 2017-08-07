@@ -106,12 +106,7 @@
             "dependencies": [],
             "deployments": [],
             "disk": 0.0,
-            "env": {
-                "VAR": "VALUE",
-                "SECRET1": {
-                    "secret": "secret0"
-                }
-            },
+            "env": {},
             "executor": "",
             "healthChecks": [
                 {
@@ -133,11 +128,6 @@
                 10001
             ],
             "requirePorts": false,
-            "secrets": {
-                "secret0": {
-                  "source": "secret/definition/id"
-                }
-            },
             "storeUrls": [],
             "tasksRunning": 2,
             "tasksStaged": 0,

@@ -25,8 +25,6 @@ import (
 
 const defaultPollingWaitTime = 500 * time.Millisecond
 
-const defaultDCOSPath = "marathon"
-
 // EventsTransport describes which transport should be used to deliver Marathon events
 type EventsTransport int
 

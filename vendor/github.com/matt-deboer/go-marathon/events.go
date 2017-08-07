@@ -273,10 +273,9 @@ type EventGroupChangeFailed struct {
 
 // EventDeploymentSuccess describes a 'deployment_success' event.
 type EventDeploymentSuccess struct {
-	ID        string          `json:"id"`
-	EventType string          `json:"eventType"`
-	Timestamp string          `json:"timestamp"`
-	Plan      *DeploymentPlan `json:"plan"`
+	ID        string `json:"id"`
+	EventType string `json:"eventType"`
+	Timestamp string `json:"timestamp"`
 }
 
 // EventDeploymentFailed describes a 'deployment_failed' event.

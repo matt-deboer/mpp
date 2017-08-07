@@ -53,15 +53,6 @@ type indexedResponse struct {
 	Content string `yaml:"content,omitempty"`
 }
 
-type responseIndices struct {
-	sync.Mutex
-	m map[string]int
-}
-
-func newResponseIndices() *responseIndices {
-	return &responseIndices{m: map[string]int{}}
-}
-
 // restMethod represents an expected HTTP method and an associated fake response
 type restMethod struct {
 	// the uri of the method
@@ -100,7 +91,7 @@ type fakeServer struct {
 
 	eventSrv        *eventsource.Server
 	httpSrv         *httptest.Server
-	fakeRespIndices *responseIndices
+	fakeRespIndices map[string]int
 }
 
 type endpoint struct {
@@ -116,10 +107,7 @@ type fakeEvent struct {
 }
 
 func getTestURL(urlString string) string {
-	parsedURL, err := url.Parse(urlString)
-	if err != nil {
-		panic(fmt.Sprintf("failed to parse URL '%s': %s", urlString, err))
-	}
+	parsedURL, _ := url.Parse(urlString)
 	return fmt.Sprintf("%s://%s", parsedURL.Scheme, strings.Join([]string{parsedURL.Host, parsedURL.Host, parsedURL.Host}, ","))
 }
 
@@ -142,18 +130,16 @@ func newFakeMarathonEndpoint(t *testing.T, configs *configContainer) *endpoint {
 		configs.server = &serverConfig{}
 	}
 
-	fakeRespIndices := newResponseIndices()
+	fakeRespIndices := map[string]int{}
 
 	// step: create the HTTP router
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v2/events", authMiddleware(configs.server, eventSrv.Handler("event")))
 	mux.HandleFunc("/", authMiddleware(configs.server, func(writer http.ResponseWriter, reader *http.Request) {
 		respKey := fakeResponseMapKey(reader.Method, reader.RequestURI, configs.server.scope)
-		fakeRespIndices.Lock()
-		fakeRespIndex := fakeRespIndices.m[respKey]
-		fakeRespIndices.m[respKey]++
+		fakeRespIndex := fakeRespIndices[respKey]
+		fakeRespIndices[respKey]++
 		responses, found := fakeResponses[respKey]
-		fakeRespIndices.Unlock()
 		if found {
 			for _, response := range responses {
 				// Index < 0 indicates a static response.

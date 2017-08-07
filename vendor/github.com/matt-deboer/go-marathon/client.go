@@ -198,7 +198,7 @@ func NewClient(config Config) (Marathon, error) {
 	}
 
 	// step: create a new cluster
-	hosts, err := newCluster(config.HTTPClient, config.URL, config.DCOSToken != "")
+	hosts, err := newCluster(config.HTTPClient, config.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -246,11 +246,22 @@ func (r *marathonClient) apiDelete(uri string, post, result interface{}) error {
 	return r.apiCall("DELETE", uri, post, result)
 }
 
-func (r *marathonClient) apiCall(method, url string, body, result interface{}) error {
+func (r *marathonClient) apiCall(method, uri string, body, result interface{}) error {
 	for {
+		// step: grab a member from the cluster and attempt to perform the request
+		member, err := r.hosts.getMember()
+		if err != nil {
+			return ErrMarathonDown
+		}
+
+		// step: Create the endpoint url
+		url := fmt.Sprintf("%s/%s", member, uri)
+		if r.config.DCOSToken != "" {
+			url = fmt.Sprintf("%s/%s", member+"/marathon", uri)
+		}
+
 		// step: marshall the request to json
 		var requestBody []byte
-		var err error
 		if body != nil {
 			if requestBody, err = json.Marshal(body); err != nil {
 				return err
@@ -258,7 +269,7 @@ func (r *marathonClient) apiCall(method, url string, body, result interface{}) e
 		}
 
 		// step: create the api request
-		request, member, err := r.buildAPIRequest(method, url, bytes.NewReader(requestBody))
+		request, err := r.buildAPIRequest(method, url, bytes.NewReader(requestBody))
 		if err != nil {
 			return err
 		}
@@ -307,20 +318,11 @@ func (r *marathonClient) apiCall(method, url string, body, result interface{}) e
 }
 
 // buildAPIRequest creates a default API request
-func (r *marathonClient) buildAPIRequest(method, uri string, reader io.Reader) (request *http.Request, member string, err error) {
-	// Grab a member from the cluster
-	member, err = r.hosts.getMember()
-	if err != nil {
-		return nil, "", ErrMarathonDown
-	}
-
-	// Create the endpoint URL
-	url := fmt.Sprintf("%s/%s", member, uri)
-
+func (r *marathonClient) buildAPIRequest(method, url string, reader io.Reader) (*http.Request, error) {
 	// Make the http request to Marathon
-	request, err = http.NewRequest(method, url, reader)
+	request, err := http.NewRequest(method, url, reader)
 	if err != nil {
-		return nil, member, err
+		return nil, err
 	}
 
 	// Add any basic auth and the content headers
@@ -335,7 +337,7 @@ func (r *marathonClient) buildAPIRequest(method, uri string, reader io.Reader) (
 	request.Header.Add("Content-Type", "application/json")
 	request.Header.Add("Accept", "application/json")
 
-	return request, member, nil
+	return request, nil
 }
 
 var oneLogLineRegex = regexp.MustCompile(`(?m)^\s*`)

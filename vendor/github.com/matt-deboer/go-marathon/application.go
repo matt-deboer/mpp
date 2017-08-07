@@ -17,12 +17,10 @@ limitations under the License.
 package marathon
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
-	"strings"
 	"time"
 )
 
@@ -64,9 +62,8 @@ type Application struct {
 	Constraints                *[][]string          `json:"constraints,omitempty"`
 	Container                  *Container           `json:"container,omitempty"`
 	CPUs                       float64              `json:"cpus,omitempty"`
-	GPUs                       *float64             `json:"gpus,omitempty"`
 	Disk                       *float64             `json:"disk,omitempty"`
-	Env                        *map[string]EnvValue `json:"env,omitempty"`
+	Env                        *map[string]string   `json:"env,omitempty"`
 	Executor                   *string              `json:"executor,omitempty"`
 	HealthChecks               *[]HealthCheck       `json:"healthChecks,omitempty"`
 	Instances                  *int                 `json:"instances,omitempty"`
@@ -96,7 +93,6 @@ type Application struct {
 	LastTaskFailure            *LastTaskFailure     `json:"lastTaskFailure,omitempty"`
 	Fetch                      *[]Fetch             `json:"fetch,omitempty"`
 	IPAddressPerTask           *IPAddressPerTask    `json:"ipAddress,omitempty"`
-	Secrets                    *map[string]Secret   `json:"secrets,omitempty"`
 }
 
 // ApplicationVersions is a collection of application versions for a specific app in marathon
@@ -147,47 +143,6 @@ type Stats struct {
 	LifeTime map[string]float64 `json:"lifeTime"`
 }
 
-// EnvValue represents either a string environment variable value, or
-// a reference to a Secret defined in the Secrets attribute of the Application
-type EnvValue struct {
-	Value  string
-	Secret string `json:"secret"`
-}
-
-// MarshalJSON marshalls an EnvValue to JSON
-func (v EnvValue) MarshalJSON() ([]byte, error) {
-	buffer := bytes.NewBufferString("")
-	if len(v.Secret) > 0 {
-		buffer.WriteString(fmt.Sprintf("{\"secret\": \"%s\"}", v.Secret))
-	} else {
-		buffer.WriteString(fmt.Sprintf("\"%s\"", v.Value))
-	}
-	return buffer.Bytes(), nil
-}
-
-// UnmarshalJSON unmarshalls an EnvValue from JSON
-func (v *EnvValue) UnmarshalJSON(b []byte) error {
-	value := strings.TrimLeft(string(b), " \n")
-	if strings.HasPrefix(value, "{") {
-		hash := make(map[string]string)
-		err := json.Unmarshal(b, &hash)
-		if err != nil {
-			return err
-		}
-		*v = EnvValue{Secret: hash["secret"]}
-	} else {
-
-		*v = EnvValue{Value: strings.TrimSuffix(strings.TrimPrefix(value, "\""), "\"")}
-	}
-	return nil
-}
-
-// Secret is a reference to an existing secret object whose value may be used
-// as the value of any referencing environment variables.
-type Secret struct {
-	Source string `json:"source"`
-}
-
 // SetIPAddressPerTask defines that the application will have a IP address defines by a external agent.
 // This configuration is not allowed to be used with Port or PortDefinitions. Thus, the implementation
 // clears both.
@@ -222,22 +177,6 @@ func (r *Application) Command(cmd string) *Application {
 //		cpu:	the CPU shared (check Docker docs) per instance
 func (r *Application) CPU(cpu float64) *Application {
 	r.CPUs = cpu
-	return r
-}
-
-// SetGPUs set the amount of GPU per instance which is assigned to the application
-//		gpu:	the GPU (check MESOS docs) per instance
-func (r *Application) SetGPUs(gpu float64) *Application {
-	r.GPUs = &gpu
-	return r
-}
-
-// EmptyGPUs explicitly empties GPUs -- use this if you need to empty
-// gpus of an application that already has gpus set (setting port definitions to nil will
-// keep the current value)
-func (r *Application) EmptyGPUs() *Application {
-	g := 0.0
-	r.GPUs = &g
 	return r
 }
 
@@ -400,7 +339,7 @@ func (r *Application) AddEnv(name, value string) *Application {
 	if r.Env == nil {
 		r.EmptyEnvs()
 	}
-	(*r.Env)[name] = EnvValue{Value: value}
+	(*r.Env)[name] = value
 
 	return r
 }
@@ -409,40 +348,7 @@ func (r *Application) AddEnv(name, value string) *Application {
 // the environments of an application that already has environments set (setting env to nil will
 // keep the current value)
 func (r *Application) EmptyEnvs() *Application {
-	r.Env = &map[string]EnvValue{}
-
-	return r
-}
-
-// AddSecret adds a secret declaration
-//		name:	the name of the variable
-//		source:	the source ID of the secret
-func (r *Application) AddSecret(name, source string) *Application {
-	if r.Secrets == nil {
-		r.EmptySecrets()
-	}
-	(*r.Secrets)[name] = Secret{Source: source}
-
-	return r
-}
-
-// EmptySecrets explicitly empties the secrets -- use this if you need to empty
-// the secrets of an application that already has secrets set (setting secrets to nil will
-// keep the current value)
-func (r *Application) EmptySecrets() *Application {
-	r.Secrets = &map[string]Secret{}
-
-	return r
-}
-
-// AddEnvSecret adds an environment variable secret to the application
-//		name:	the name of the variable
-//		secret:	the name of secret defined in the application's Secrets
-func (r *Application) AddEnvSecret(name, secret string) *Application {
-	if r.Env == nil {
-		r.EmptyEnvs()
-	}
-	(*r.Env)[name] = EnvValue{Secret: secret}
+	r.Env = &map[string]string{}
 
 	return r
 }
@@ -592,20 +498,6 @@ func (r *Application) AddFetchURIs(fetchURIs ...Fetch) *Application {
 func (r *Application) EmptyFetchURIs() *Application {
 	r.Fetch = &[]Fetch{}
 
-	return r
-}
-
-// SetUpgradeStrategy sets the upgrade strategy.
-func (r *Application) SetUpgradeStrategy(us UpgradeStrategy) *Application {
-	r.UpgradeStrategy = &us
-	return r
-}
-
-// EmptyUpgradeStrategy explicitly empties the upgrade strategy -- use this if
-// you need to empty the upgrade strategy of an application that already has
-// the upgrade strategy set (setting it to nil will keep the current value).
-func (r *Application) EmptyUpgradeStrategy() *Application {
-	r.UpgradeStrategy = &UpgradeStrategy{}
 	return r
 }
 

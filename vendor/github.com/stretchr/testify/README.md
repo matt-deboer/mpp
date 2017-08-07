@@ -1,6 +1,8 @@
 Testify - Thou Shalt Write Tests
 ================================
 
+[![Build Status](https://travis-ci.org/stretchr/testify.svg)](https://travis-ci.org/stretchr/testify) [![Go Report Card](https://goreportcard.com/badge/github.com/stretchr/testify)](https://goreportcard.com/report/github.com/stretchr/testify) [![GoDoc](https://godoc.org/github.com/stretchr/testify?status.svg)](https://godoc.org/github.com/stretchr/testify)
+
 Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
 
 Features include:
@@ -13,7 +15,7 @@ Features include:
 Get started:
 
   * Install testify with [one line of code](#installation), or [update it with another](#staying-up-to-date)
-  * For an introduction to writing test code in Go, see our [blog post article](http://blog.stretchr.com/2014/03/05/test-driven-development-specifically-in-golang/) or check out  http://golang.org/doc/code.html#Testing
+  * For an introduction to writing test code in Go, see http://golang.org/doc/code.html#Testing
   * Check out the API Documentation http://godoc.org/github.com/stretchr/testify
   * To make your testing life easier, check out our other project, [gorc](http://github.com/stretchr/gorc)
   * A little about [Test-Driven Development (TDD)](http://en.wikipedia.org/wiki/Test-driven_development)
@@ -97,8 +99,8 @@ func TestSomething(t *testing.T) {
 }
 ```
 
-`require` package
--------------------------------------------------------------------------------------------
+[`require`](http://godoc.org/github.com/stretchr/testify/require "API documentation") package
+---------------------------------------------------------------------------------------------
 
 The `require` package provides same global functions as the `assert` package, but instead of returning a boolean result they terminate current test.
 
@@ -146,7 +148,7 @@ type MyMockedObject struct{
 // NOTE: This method is not being tested here, code that uses this object is.
 func (m *MyMockedObject) DoSomething(number int) (bool, error) {
 
-  args := m.Mock.Called(number)
+  args := m.Called(number)
   return args.Bool(0), args.Error(1)
 
 }
@@ -169,7 +171,7 @@ func TestSomething(t *testing.T) {
   targetFuncThatDoesSomethingWithObj(testObj)
 
   // assert that the expectations were met
-  testObj.Mock.AssertExpectations(t)
+  testObj.AssertExpectations(t)
 
 }
 ```
@@ -210,7 +212,7 @@ func (suite *ExampleTestSuite) SetupTest() {
 // All methods that begin with "Test" are run as tests within a
 // suite.
 func (suite *ExampleTestSuite) TestExample() {
-    assert.Equal(suite.T(), suite.VariableThatShouldStartAtFive, 5)
+    assert.Equal(suite.T(), 5, suite.VariableThatShouldStartAtFive)
 }
 
 // In order for 'go test' to run this suite, we need to create
@@ -266,7 +268,8 @@ Installation
 
 To install Testify, use `go get`:
 
-    go get github.com/stretchr/testify
+    * Latest version: go get github.com/stretchr/testify
+    * Specific version: go get gopkg.in/stretchr/testify.v1
 
 This will then make the following packages available to you:
 
@@ -296,9 +299,14 @@ func TestSomething(t *testing.T) {
 Staying up to date
 ==================
 
-To update Testify, use `go get -u`:
+To update Testify to the latest version, use `go get -u github.com/stretchr/testify`.
 
-    go get -u github.com/stretchr/testify
+------
+
+Version History
+===============
+
+   * 1.0 - New package versioning strategy adopted.
 
 ------
 
