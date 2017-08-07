@@ -7,10 +7,10 @@ import (
 	"net/url"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/mpp/pkg/locator"
 	"github.com/matt-deboer/mpp/pkg/selector"
 	"github.com/prometheus/common/model"
+	log "github.com/sirupsen/logrus"
 )
 
 const baseName = "minimum-history"

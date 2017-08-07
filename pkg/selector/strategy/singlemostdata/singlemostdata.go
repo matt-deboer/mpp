@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/url"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/mpp/pkg/locator"
 	"github.com/matt-deboer/mpp/pkg/selector"
+	log "github.com/sirupsen/logrus"
 )
 
 const (

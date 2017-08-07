@@ -9,10 +9,10 @@ import (
 
 	"sync"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/mpp/pkg/locator"
 	"github.com/matt-deboer/mpp/pkg/selector"
 	"github.com/matt-deboer/mpp/pkg/version"
+	log "github.com/sirupsen/logrus"
 	"github.com/vulcand/oxy/buffer"
 	"github.com/vulcand/oxy/forward"
 )
@@ -31,6 +31,7 @@ type Router struct {
 	// used to mark control of the selection process
 	theConch            chan struct{}
 	selectionInProgress sync.RWMutex
+	shutdownHook        chan struct{}
 }
 
 // Status contains a snapshot status summary of the router state
@@ -65,6 +66,7 @@ func NewRouter(interval time.Duration, affinityOptions []AffinityOption,
 		metrics:         newMetrics(version.Name),
 		selection:       &selector.Result{},
 		theConch:        make(chan struct{}, 1),
+		shutdownHook:    make(chan struct{}, 1),
 	}
 
 	// Set up the lock
@@ -77,7 +79,13 @@ func NewRouter(interval time.Duration, affinityOptions []AffinityOption,
 				log.Debugf("Backend selection is sleeping for %s", interval)
 			}
 			time.Sleep(r.interval)
-			r.doSelection()
+
+			select {
+			case _ = <-r.shutdownHook:
+				return
+			default:
+				r.doSelection()
+			}
 		}
 	}()
 
@@ -88,6 +96,11 @@ func NewRouter(interval time.Duration, affinityOptions []AffinityOption,
 	},
 		buffer.Retry(`IsNetworkError() && Attempts() < 2`))
 	return r, nil
+}
+
+// Close stops the router's background selection routine
+func (r *Router) Close() {
+	r.shutdownHook <- struct{}{}
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {

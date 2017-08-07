@@ -3,7 +3,7 @@ package marathonlocator
 import (
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/matt-deboer/go-marathon"
 	"github.com/matt-deboer/mpp/pkg/locator"

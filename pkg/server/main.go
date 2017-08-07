@@ -8,7 +8,6 @@ import (
 
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/mpp/pkg/locator"
 	"github.com/matt-deboer/mpp/pkg/locator/kuberneteslocator"
 	"github.com/matt-deboer/mpp/pkg/locator/marathonlocator"
@@ -17,6 +16,7 @@ import (
 	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/random"
 	_ "github.com/matt-deboer/mpp/pkg/selector/strategy/singlemostdata"
 	"github.com/matt-deboer/mpp/pkg/version"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 

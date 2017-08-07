@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"sync"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/matt-deboer/mpp/pkg/locator"
+	log "github.com/sirupsen/logrus"
 )
 
 // Selector is a puggable interface for viable prometheus endpoints
