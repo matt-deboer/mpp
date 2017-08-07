@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/big"
+	"net"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/prometheus/client_golang/api/prometheus"
 )
@@ -39,6 +40,24 @@ type PrometheusEndpoint struct {
 
 func (pe *PrometheusEndpoint) String() string {
 	return pe.Address
+}
+
+const connectionTimetout = 1 * time.Second
+const readTimeout = 3 * time.Second
+
+func timeoutDialer(netw, addr string) (net.Conn, error) {
+	conn, err := net.DialTimeout(netw, addr, connectionTimetout)
+	if err != nil {
+		return nil, err
+	}
+	conn.SetDeadline(time.Now().Add(readTimeout))
+	return conn, nil
+}
+
+var httpClient = &http.Client{
+	Transport: &http.Transport{
+		Dial: timeoutDialer,
+	},
 }
 
 // Viable returns true if the endpoint is able to
@@ -135,7 +154,7 @@ func (lv *LabeledValue) String() string {
 // for metrics with multiple instances
 func ScrapeMetric(addr string, name string) (*LabeledValue, error) {
 
-	resp, err := http.Get(fmt.Sprintf("%s/metrics", addr))
+	resp, err := httpClient.Get(fmt.Sprintf("%s/metrics", addr))
 	if err != nil {
 		return nil, err
 	}
