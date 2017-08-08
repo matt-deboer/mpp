@@ -167,12 +167,15 @@ func (r *Router) doSelection() {
 }
 
 func equal(a, b []*url.URL) bool {
-	for i, v := range a {
-		if *v != *b[i] {
-			return false
+	if len(a) == len(b) {
+		for i, v := range a {
+			if *v != *b[i] {
+				return false
+			}
 		}
+		return true
 	}
-	return len(a) == len(b)
+	return false
 }
 
 func contains(a []*url.URL, u *url.URL) bool {
