@@ -17,6 +17,7 @@ limitations under the License.
 package marathon
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -99,6 +100,20 @@ func TestApplicationCPU(t *testing.T) {
 	assert.Equal(t, 0.1, app.CPUs)
 }
 
+func TestApplicationSetGPUs(t *testing.T) {
+	app := NewDockerApplication()
+	assert.Nil(t, app.GPUs)
+	app.SetGPUs(0.1)
+	assert.Equal(t, 0.1, *app.GPUs)
+}
+
+func TestApplicationEmptyGPUs(t *testing.T) {
+	app := NewDockerApplication()
+	assert.Nil(t, app.GPUs)
+	app.EmptyGPUs()
+	assert.Equal(t, 0.0, *app.GPUs)
+}
+
 func TestApplicationArgs(t *testing.T) {
 	app := NewDockerApplication()
 	assert.Nil(t, app.Args)
@@ -154,14 +169,30 @@ func TestApplicationEnvs(t *testing.T) {
 	app := NewDockerApplication()
 	assert.Nil(t, app.Env)
 
-	app.AddEnv("hello", "world").AddEnv("foo", "bar")
-	assert.Equal(t, 2, len(*app.Env))
-	assert.Equal(t, "world", (*app.Env)["hello"])
-	assert.Equal(t, "bar", (*app.Env)["foo"])
+	app.AddEnv("hello", "world").AddEnv("foo", "bar").AddEnvSecret("top", "secret1")
+	assert.Equal(t, 3, len(*app.Env))
+	assert.Equal(t, EnvValue{Value: "world"}, (*app.Env)["hello"])
+	assert.Equal(t, EnvValue{Value: "bar"}, (*app.Env)["foo"])
+	assert.Equal(t, EnvValue{Secret: "secret1"}, (*app.Env)["top"])
 
 	app.EmptyEnvs()
 	assert.NotNil(t, app.Env)
 	assert.Equal(t, 0, len(*app.Env))
+}
+
+func TestApplicationSecrets(t *testing.T) {
+	app := NewDockerApplication()
+	assert.Nil(t, app.Env)
+
+	app.AddSecret("secret0", "path/to/my/secret")
+	app.AddSecret("secret1", "path/to/my/other/secret")
+	assert.Equal(t, 2, len(*app.Secrets))
+	assert.Equal(t, Secret{Source: "path/to/my/secret"}, (*app.Secrets)["secret0"])
+	assert.Equal(t, Secret{Source: "path/to/my/other/secret"}, (*app.Secrets)["secret1"])
+
+	app.EmptySecrets()
+	assert.NotNil(t, app.Secrets)
+	assert.Equal(t, 0, len(*app.Secrets))
 }
 
 func TestApplicationSetExecutor(t *testing.T) {
@@ -288,6 +319,8 @@ func TestApplications(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, applications)
 	assert.Equal(t, len(applications.Apps), 2)
+	assert.Equal(t, (*applications.Apps[0].Env)["SECRET1"].Secret, "secret0")
+	assert.Equal(t, (*applications.Apps[0].Secrets)["secret0"].Source, "secret/definition/id")
 
 	v := url.Values{}
 	v.Set("cmd", "nginx")
@@ -558,16 +591,20 @@ func TestWaitOnApplication(t *testing.T) {
 		endpoint := newFakeMarathonEndpoint(t, configs)
 		defer endpoint.Close()
 
-		var err error
+		errCh := make(chan error)
 		go func() {
-			err = endpoint.Client.WaitOnApplication(test.appName, test.timeout)
+			errCh <- endpoint.Client.WaitOnApplication(test.appName, test.timeout)
 		}()
-		timer := time.NewTimer(400 * time.Millisecond)
-		<-timer.C
-		if test.shouldSucceed {
-			assert.NoError(t, err, test.desc)
-		} else {
-			assert.IsType(t, err, ErrTimeoutError, test.desc)
+
+		select {
+		case <-time.After(400 * time.Millisecond):
+			assert.Fail(t, fmt.Sprintf("%s: WaitOnApplication did not complete in time", test.desc))
+		case err := <-errCh:
+			if test.shouldSucceed {
+				assert.NoError(t, err, test.desc)
+			} else {
+				assert.IsType(t, err, ErrTimeoutError, test.desc)
+			}
 		}
 	}
 }
@@ -630,4 +667,19 @@ func TestIPAddressPerTaskDiscovery(t *testing.T) {
 	assert.NotNil(t, disc.Ports)
 	assert.Equal(t, 0, len(*disc.Ports))
 
+}
+
+func TestUpgradeStrategy(t *testing.T) {
+	app := Application{}
+	assert.Nil(t, app.UpgradeStrategy)
+	app.SetUpgradeStrategy(UpgradeStrategy{}.SetMinimumHealthCapacity(1.0).SetMaximumOverCapacity(0.0))
+	us := app.UpgradeStrategy
+	assert.Equal(t, 1.0, *us.MinimumHealthCapacity)
+	assert.Equal(t, 0.0, *us.MaximumOverCapacity)
+
+	app.EmptyUpgradeStrategy()
+	us = app.UpgradeStrategy
+	assert.NotNil(t, us)
+	assert.Nil(t, us.MinimumHealthCapacity)
+	assert.Nil(t, us.MaximumOverCapacity)
 }

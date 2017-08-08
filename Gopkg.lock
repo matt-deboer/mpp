@@ -47,7 +47,7 @@
   branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "748d386b5c1ea99658fd69fe9f03991ce86a90c1"
+  revision = "1909bc2f63dc92bb931deace8b8312c4db72d12f"
 
 [[projects]]
   branch = "master"
@@ -63,12 +63,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/jmoiron/jsonq"
-  packages = ["."]
-  revision = "e874b168d07ecc7808bc950a17998a8aa3141d82"
-
-[[projects]]
-  branch = "master"
   name = "github.com/mailgun/multibuf"
   packages = ["."]
   revision = "565402cd71fbd9c12aa7e295324ea357e970a61e"
@@ -76,8 +70,7 @@
 [[projects]]
   name = "github.com/matt-deboer/go-marathon"
   packages = ["."]
-  revision = "9ab64d9f0259e8800911d92ebcd4d5b981917919"
-  version = "v0.6.0"
+  version = "v0.6.0-secrets"
 
 [[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
@@ -149,13 +142,13 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context","context/ctxhttp","http2","http2/hpack","idna","lex/httplex"]
-  revision = "f5079bd7f6f74e23c4d65efa0f4ce14cbd6a3c0f"
+  revision = "167db312be3be3d239e24dbe0ab099ab5b9aa783"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix","windows","windows/registry","windows/svc/eventlog"]
-  revision = "d8f5ea21b9295e315e612b4bcf4bedea93454d4d"
+  revision = "47bdb838cce8879fca08207206a5dfde2f2538bc"
 
 [[projects]]
   branch = "master"
@@ -167,7 +160,7 @@
   branch = "master"
   name = "golang.org/x/tools"
   packages = ["go/ast/astutil","go/buildutil","go/loader"]
-  revision = "f03b3350b7d6cb09e4221e7f2ecffaf41f89fce1"
+  revision = "5831d16d18029819d39f99bdc2060b8eff410b6b"
 
 [[projects]]
   name = "gopkg.in/alecthomas/kingpin.v2"
@@ -184,6 +177,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c831c3540c5748f7aeea20ace7b106b436477139e45d8394de2fd37ea9e286ec"
+  inputs-digest = "87a1c1d8769c964c5fc5e8bb0a56f7665b604ef0b9ed95dc53e35f522a17875f"
   solver-name = "gps-cdcl"
   solver-version = 1

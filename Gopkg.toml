@@ -26,12 +26,8 @@
   name = "github.com/hashicorp/golang-lru"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/jmoiron/jsonq"
-
-[[constraint]]
   name = "github.com/matt-deboer/go-marathon"
-  version = "0.6.0"
+  version = "v0.6.0-secrets"
 
 [[constraint]]
   name = "github.com/prometheus/client_golang"
