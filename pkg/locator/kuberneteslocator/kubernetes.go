@@ -1,14 +1,15 @@
 package kuberneteslocator
 
 import (
+	"context"
 	"fmt"
+	"io/ioutil"
 	"strconv"
 
+	"github.com/ericchiang/k8s"
+	"github.com/ghodss/yaml"
 	"github.com/matt-deboer/mpp/pkg/locator"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
+	log "github.com/sirupsen/logrus"
 )
 
 type kubeLocator struct {
@@ -17,36 +18,43 @@ type kubeLocator struct {
 	portNumber    int32
 	namespace     string
 	serviceName   string
-	clientset     *kubernetes.Clientset
+	client        *k8s.Client
 }
 
 // NewKubernetesLocator generates a new marathon prometheus locator
 func NewKubernetesLocator(kubeconfig, namespace, labelSelector, port, serviceName string) (locator.Locator, error) {
 
-	var config *rest.Config
+	var client *k8s.Client
+	var err error
 	if len(kubeconfig) > 0 {
-		cff, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+		data, err := ioutil.ReadFile(kubeconfig)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("read kubeconfig: %v", err)
 		}
-		config = cff
-	} else {
-		icc, err := rest.InClusterConfig()
-		if err != nil {
-			return nil, err
-		}
-		config = icc
-	}
 
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
+		// Unmarshal YAML into a Kubernetes config object.
+		var config k8s.Config
+		if err := yaml.Unmarshal(data, &config); err != nil {
+			return nil, fmt.Errorf("unmarshal kubeconfig: %v", err)
+		}
+
+		log.Infof("Using kubeconfig %s", kubeconfig)
+		client, err = k8s.NewClient(&config)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		log.Infof("Using in-cluster kubeconfig")
+		client, err = k8s.NewInClusterClient()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	portNumber, _ := strconv.ParseInt(port, 10, 32)
 
 	return &kubeLocator{
-		clientset:     clientset,
+		client:        client,
 		labelSelector: labelSelector,
 		namespace:     namespace,
 		portName:      port,
@@ -60,35 +68,39 @@ func (k *kubeLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 
 	endpoints := []string{}
 	if len(k.serviceName) > 0 {
-		endp, err := k.clientset.Core().Endpoints(k.namespace).Get(k.serviceName)
+		endp, err := k.client.CoreV1().GetEndpoints(context.Background(), k.serviceName, k.namespace)
 		if err != nil {
 			return nil, err
 		}
 		var port int32
 		if len(endp.Subsets) > 0 {
 			for _, p := range endp.Subsets[0].Ports {
-				if p.Protocol == v1.ProtocolTCP {
+				if p.GetProtocol() == "TCP" {
 					if len(k.portName) > 0 {
-						if k.portName == p.Name || p.Port == k.portNumber {
+						if k.portName == p.GetName() || p.GetPort() == k.portNumber {
 							// 'port' flag was specified; match by name or port value
-							port = p.Port
+							port = p.GetPort()
 							break
 						}
 					} else {
 						// 'port' flag not specified; take the first (TCP) port we found
-						port = p.Port
+						port = p.GetPort()
 						break
 					}
 				}
 			}
 			for _, a := range endp.Subsets[0].Addresses {
-				endpoints = append(endpoints, fmt.Sprintf("http://%s:%d", a.IP, port))
+				endpoints = append(endpoints, fmt.Sprintf("http://%s:%d", a.GetIp(), port))
 			}
 		}
 	} else {
-		pods, err := k.clientset.Core().Pods(k.namespace).List(v1.ListOptions{
-			LabelSelector: k.labelSelector,
-		})
+		ls := new(k8s.LabelSelector)
+		if len(k.labelSelector) > 0 {
+			// if strings.Contians(k.labelSelector, "=") {
+
+			// }
+		}
+		pods, err := k.client.CoreV1().ListPods(context.Background(), k.namespace, ls.Selector())
 		if err != nil {
 			return nil, err
 		}
@@ -96,15 +108,15 @@ func (k *kubeLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 			var port int32
 			for _, c := range pod.Spec.Containers {
 				for _, p := range c.Ports {
-					if p.Protocol == v1.ProtocolTCP {
+					if p.GetProtocol() == "TCP" {
 						if len(k.portName) > 0 {
-							if k.portName == p.Name || p.ContainerPort == k.portNumber {
+							if k.portName == p.GetName() || p.GetContainerPort() == k.portNumber {
 								// 'port' flag was specified; match by name or port value
-								port = p.ContainerPort
+								port = p.GetContainerPort()
 							}
 						} else {
 							// 'port' flag not specified; take the first (TCP) port we found
-							port = p.ContainerPort
+							port = p.GetContainerPort()
 						}
 					}
 					if port > 0 {

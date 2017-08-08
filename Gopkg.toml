@@ -57,6 +57,3 @@
   branch = "master"
   name = "github.com/vulcand/oxy"
 
-[[constraint]]
-  name = "k8s.io/client-go"
-  version = "3.0.0"
