@@ -9,6 +9,9 @@ addons:
     - upx-ucl
 before_install:
   - go get github.com/mattn/goveralls
+install:
+  - go get github.com/golang/dep/cmd/dep
+  - dep ensure
 script:
 - make release
 - upx bin/mpp
