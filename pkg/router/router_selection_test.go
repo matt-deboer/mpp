@@ -107,7 +107,8 @@ func TestServeHTTPUnderLoadWithFailuresAndReselection(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r, err := router.NewRouter(time.Second, []router.AffinityOption{*ao1, *ao2}, []locator.Locator{ml}, "random")
+	// router performs background selection 4 times per second
+	r, err := router.NewRouter(250*time.Millisecond, []router.AffinityOption{*ao1, *ao2}, []locator.Locator{ml}, "random")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +122,8 @@ func TestServeHTTPUnderLoadWithFailuresAndReselection(t *testing.T) {
 	testSeconds := 5
 
 	results := makeRequests(t, mppServer.URL, requestsPerSecond, concurrency, testSeconds)
-	go swapEndpoints([]string{prom1Server.URL, prom2Server.URL, prom3Server.URL}, ml, testSeconds)
+	// available endpoints are also swapped 4 times per second
+	go swapEndpoints([]string{prom1Server.URL, prom2Server.URL, prom3Server.URL}, ml, testSeconds, 250*time.Millisecond)
 
 	totalResults := 0
 	countsByEndpoint := make(map[string]int)
@@ -135,13 +137,13 @@ func TestServeHTTPUnderLoadWithFailuresAndReselection(t *testing.T) {
 	assert.True(t, len(countsByEndpoint) == 2, "Expected 2 available endpoints to serve results")
 }
 
-func swapEndpoints(urls []string, ml *mockLocator, testSeconds int) {
+func swapEndpoints(urls []string, ml *mockLocator, testSeconds int, frequency time.Duration) {
 	totalURLs := len(urls)
 	end := time.Now().Add(time.Duration(testSeconds) * time.Second)
 	i := 0
 	for time.Now().Before(end) {
 		ml.UpdateEndpoints([]string{urls[i%totalURLs], urls[(i+1)%totalURLs]})
-		time.Sleep(250 * time.Millisecond)
+		time.Sleep(frequency)
 		i++
 	}
 }
