@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
+	"strings"
 
 	"github.com/ericchiang/k8s"
 	"github.com/ghodss/yaml"
@@ -13,7 +14,7 @@ import (
 )
 
 type kubeLocator struct {
-	labelSelector string
+	labelSelector k8s.Option
 	portName      string
 	portNumber    int32
 	namespace     string
@@ -51,11 +52,21 @@ func NewKubernetesLocator(kubeconfig, namespace, labelSelector, port, serviceNam
 		}
 	}
 
+	ls := new(k8s.LabelSelector)
+	if len(labelSelector) > 0 {
+		for _, part := range strings.Split(labelSelector, ",") {
+			if strings.Contains(part, "=") {
+				eq := strings.Split(part, "=")
+				ls.Eq(eq[0], strings.Join(eq[1:], "="))
+			}
+		}
+	}
+
 	portNumber, _ := strconv.ParseInt(port, 10, 32)
 
 	return &kubeLocator{
 		client:        client,
-		labelSelector: labelSelector,
+		labelSelector: ls.Selector(),
 		namespace:     namespace,
 		portName:      port,
 		portNumber:    int32(portNumber),
@@ -94,13 +105,7 @@ func (k *kubeLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 			}
 		}
 	} else {
-		ls := new(k8s.LabelSelector)
-		if len(k.labelSelector) > 0 {
-			// if strings.Contians(k.labelSelector, "=") {
-
-			// }
-		}
-		pods, err := k.client.CoreV1().ListPods(context.Background(), k.namespace, ls.Selector())
+		pods, err := k.client.CoreV1().ListPods(context.Background(), k.namespace, k.labelSelector)
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +132,7 @@ func (k *kubeLocator) Endpoints() ([]*locator.PrometheusEndpoint, error) {
 					break
 				}
 			}
-			endpoints = append(endpoints, fmt.Sprintf("http://%s:%d", pod.Status.PodIP, port))
+			endpoints = append(endpoints, fmt.Sprintf("http://%s:%d", pod.Status.GetPodIP(), port))
 		}
 	}
 	return locator.ToPrometheusClients(endpoints)
