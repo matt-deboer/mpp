@@ -7,12 +7,12 @@ addons:
   apt:
     packages:
     - upx-ucl
-before_install:
-  - go get github.com/mattn/goveralls
+# before_install:
+  # - go get github.com/mattn/goveralls
 script:
 - make release
 - upx bin/mpp
-- $HOME/gopath/bin/goveralls -service=travis-ci
+# - $HOME/gopath/bin/goveralls -service=travis-ci
 after_deploy:
 - make docker VERSION=$TRAVIS_TAG
 - docker login -u $DOCKER_USER -p $DOCKER_PASS
