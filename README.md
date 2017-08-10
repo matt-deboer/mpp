@@ -4,6 +4,7 @@ mpp
 [![Build Status](https://travis-ci.org/matt-deboer/mpp.svg?branch=master)](https://travis-ci.org/matt-deboer/mpp)
 [![Docker Pulls](https://img.shields.io/docker/pulls/mattdeboer/mpp.svg)](https://hub.docker.com/r/mattdeboer/mpp/)
 [![Coverage Status](https://coveralls.io/repos/github/matt-deboer/mpp/badge.svg?branch=master)](https://coveralls.io/github/matt-deboer/mpp?branch=master) 
+[![Go Report Card](https://goreportcard.com/badge/github.com/matt-deboer/mpp)](https://goreportcard.com/report/github.com/matt-deboer/mpp)
 
 Multi-prometheus proxy (**mpp**) exists to forward incoming query requests to one of a set
 of multiple prometheus instances deployed as HA duplicates of each other.
